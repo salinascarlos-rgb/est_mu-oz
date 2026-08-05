@@ -28,6 +28,7 @@
             <option value="Inactive" {% if not request.GET.status == "Inactive" %}selected{% endif %}>Inactive</option>
             </select>
         </div>
+        
 
 <div class="col-span-1 md:col-span-4">
     <div class="flex items-center justify-between">
@@ -38,6 +39,11 @@
         <div class="flex items-center space-x-2 mt-4 md:mt-0">
             <a href="?export=csv{% for key,value in request.GET.items %}{% if key != 'page'%}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-green-700">
                 Export to CSV
+            </a>
+        </div>
+        <div class="flex justify-end mb-4">
+            <a href="{% url 'suppliers:supplier_bulk_create' %}" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md shadow-md hover:bg-indigo-700 transition duration-300">
+                Bulk Upload (CSV)
             </a>
         </div>
         {% if permissions.suppliers >= 2 %}

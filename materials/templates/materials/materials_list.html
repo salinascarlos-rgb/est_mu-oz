@@ -40,6 +40,11 @@
                 Export to CSV
             </a>
         </div>
+        <div class="flex justify-end mb-4">
+            <a href="{% url 'materials:material_bulk_create' %}" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md shadow-md hover:bg-indigo-700 transition duration-300">
+                Bulk Upload (CSV)
+            </a>
+        </div>
         {% if permissions.materials >= 2 %}
         <a href="{% url 'materials:material_create' %}" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg text-center transition-colors duration-300 hover:bg-[#1a2c53]">Create New Material</a>
         {% endif %}
