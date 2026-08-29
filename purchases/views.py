@@ -103,7 +103,7 @@ def create_purchase_order(request):
             currency_symbol = line_data.get('currency_supplier')
             quantity = line_data.get('quantity')
             price = line_data.get('price')
-            position = line_data('position',i)
+            position = line_data.get('position',i)
 
             try:
                 material = get_object_or_404(Material, id_material=material_id)

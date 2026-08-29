@@ -1,0 +1,249 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}
+Create New Purchase Order
+{% endblock %}
+
+{% block content %}
+
+<h2 class="text-3x1 font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">Purchases</h2>
+
+<div class="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md mt-10">
+    <h2 class="text-3x1 font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">Create New Purchases Order</h2>
+    <form method="post" class="space-y-6" onsubmit="return flase";>
+        {% csrf_token %}
+
+        <h3 class="text-xl font-semibold text-gray-700 mb-4">Supplier Selection</h3>
+        <div class="flex items-center space-x-4">
+            <label for="supplier_search" class="block text-sm font-medium text-gray-700 w-1/3">Supplier Search (ID)</label>
+            <div class="mt-1 w-2/3">
+                <input type="text" id="supplier_search" placeholder="Enter Supplier ID and press Enter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex items-center space-x-4">
+                <label for="estimated_delivery_date" class="block text-sm font-medium text-gray-700 w-1/3">Estimated Delivery Date</label>
+                <div class="mt-1 w-2/3">
+                    <input type="text" id="supplier_search" placeholder="Enter Supplier ID and press Enter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" name="supplier_pk" id="supplier_id_input">
+        <input type="hidden" name="default_currency" id="default_currency_input">
+
+        <hr class="my-6">
+
+        <h3 class="text-xl font-semibold text-gray-700 mb-4">Supplier Master Data</h3>
+        <div class="space-y-4" id="supplier_data_fields">
+            <div class="flex items-center space-x-4">
+                <label class="block text-sm font-medium text-gray-700 w-1/3">Name</label>
+                <div class="mt-1 w-2/3">
+                    <input type="text" id="name_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <label class="block text-sm font-medium text-gray-700 w-1/3">Address</label>
+                <div class="mt-1 w-2/3">
+                    <input type="text" id="address_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <label class="block text-sm font-medium text-gray-700 w-1/3">City</label>
+                <div class="mt-1 w-2/3">
+                    <input type="text" id="city_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <label class="block text-sm font-medium text-gray-700 w-1/3">State/Province</label>
+                <div class="mt-1 w-2/3">
+                    <input type="text" id="state_province_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <label class="block text-sm font-medium text-gray-700 w-1/3">Country</label>
+                <div class="mt-1 w-2/3">
+                    <input type="text" id="country_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-6">
+
+        <h3 class="text-xl font-semibold text-gray-700 mb-4"> Purchase Order Details</h3>
+
+        <hr class="my-6">
+        <h3 class="text-xl font-semibold text-gray-700 mb-4"> Line Items</h3>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Material</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</th>
+                        <th class="px-3 py-2"></th>
+                    </tr>
+                </thead>
+                <tbody id="line-items-container" class="bg-white divide-y divide-gray-200">
+
+                </tbody>
+            </table>
+        </div>
+        <button type="button" id="add-item-btn" class="mt-4 bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 hover_bg-green-600">Add Item</button>
+        <hr class="my-6">
+        <div class="flex justify-end space-x-4 pt-6">
+            <a href="{% url 'purchases:purchase_order_form'%}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray-400">Cancel</a>
+            <button type="submit" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-[#1a2c53]">Create Purchase Order</button>
+        </div>
+    </form>
+</div>
+
+{% endblock content %}
+{% block extra_js %}
+<script>
+    window.addEventListener('load',function() {
+        const D = document;
+        const form = D.querySelector('form');
+        const [searchI, dateI, currI, linesC, addB] = ['supplier_search', 'estimated_delivery_date', 'default_currency_input','line-items-container', 'add-item-btn'].map(id => D.getElementByIdID(id));
+        const csrf_token = D.querySelector('[name=csrfmiddlewaretoken]').value;
+        let lineCount = 0;
+        const URLs = {supplier: '/purchases/api/supplier/details/',material:'/purchases/api/material/details/', create:'/purchases/create_order/'};
+        const SUPP_FIELDS = ['name', 'address', 'city', 'state_province', 'country'];
+
+        const fetchData = (url,name) => fetch(url, {method:'GET', headers: { 'X-Requested-With': 'XMLHttpRequest','X-CSRFToken':csrftoken}})
+            .then(r => { if(r.status === 4040) throw new Error(`${name} no encontrado.`); if (!r.ok) throw new Error(`Error ${r.status}.`); return r.json(); });
+
+        const updateCurrencies = (curr) => { for(let i = 1; i <= lineCount; i++){ const c = D.getElementByIdID(`currency_${i}`); if (c) c.value = curr || '';}};
+        
+        const fullSupplier = (data,id) => {
+            D.getElementByIdID('supplier_id_input').value = id || '';
+            SUPP_FIELDS.forEach(f => {const el = 
+                D.getElementByIdID(`${f}_display`); if (el) el.value = data[f] || '';
+            });
+            const curr = data.currency || '';
+            currI.value = curr;
+            updateCurrencies(curr);
+        };
+
+        const loadSupplier = (id) => {
+            if (!id) { alert('Introduce Supplier ID.'); fillSupplier({},''); return;}
+            fetchData(`${URLs.supplier}${id}/`, 'Supplier')
+                .then(data => fillSupplier(data,id))
+                .catch(error => { alert(`Error: ${error.message}.`);fillSupplier({},''); });
+        };
+
+        const loadMaterial = (id,rowId) => {
+            if (!id) return;
+            fetchData(`${URLs.material}${id}/`, 'Material')
+                .then(data => {
+                    D.getElementByIdID(`description_${roeId}`).value = data.description || '';
+                    D.getElementByIdID(`unit_${roeId}`).value = data.unit || '';
+                    D.getElementByIdID(`currency_${roeId}`).value = currI.value || '';
+                })
+                .catch(error => {
+                    alert(`Error: ${error.message}.`);
+                    ['description','unit','currency'].forEach(f => D.getElementByIdID(`${f}_${rowId}`).value = '');
+                });
+        };
+
+        const createRowHTML = (c,curr) => `
+            <td class="px-3 py-2 text-sm text-gray-500">${c}</td>
+            <td class="px-3 py-2"><input type="text" id="material_id_${c}" name="material_id_${c}" required class="w-24 px-2 py-1 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"></td>
+            <td class="px-3 py-2"><input type="text" id="description_${c}" name="description_${c}" required class="w-40 px-2 py-1 border border-gray-300 rounded-md text-sm bg-gray-100 cursor-not-allowed"></td>
+            <td class="px-3 py-2"><input type="text" id="quantity_${c}" name="quantity_${c}" required class="w-24 px-2 py-1 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"></td>
+            <td class="px-3 py-2"><input type="text" id="unit_${c}" name="unit_${c}" required class="w-40 px-2 py-1 border border-gray-300 rounded-md text-sm bg-gray-100 cursor-not-allowed"></td>
+            <td class="px-3 py-2"><input type="text" id="price_${c}" name="price_${c}" required class="w-24 px-2 py-1 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"></td>
+            <td class="px-3 py-2"><input type="text" id="currency_${c}" name="currency_${c}" required class="w-40 px-2 py-1 border border-gray-300 rounded-md text-sm bg-gray-100 cursor-not-allowed"></td>
+            <td class="px-3 py-2"><button type="button" class="remove-item-btn text-red-600 hover:text-red-900" data-row-id="${c}"></button></td>
+        `;
+
+        const addLine = () => {
+            lineCount++;
+            const newRow = D.createElement('tr');
+            newRow.id = `row_${lineCount}`;
+            newRow.innerHTML = createRowHTML(lineCount, currI.value);
+            linesC.appendChild(newRow);
+
+            const matI = D.getElementByIdID(`material_id_${lineCount}`);
+            matI.focus();
+            matI.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {e.preventDefault(); loadMaterial(e.target.value.trim(), lineCount); }
+            });
+        };
+
+        const serialize = () => {
+            const [sId, dDate] = [D.getElementByIdID('supplier_id_input').value, dateI.value];
+            if (!sId || !dDate) { alert('Pending Supplier or Delivery Date.'); return null; }
+            let [isValid, activeLines, lines] = [true, 0, []];
+
+            for (let i = 1; i <= lineCount; i++) {
+                const row = D.getElementById(`row_${i}`);
+                if (row) {
+                    activeLines++;
+                    const [mId, desc, qty, unit, price, curr] = [
+                        D.getElementById(`material_id_${i}`).value, D.getElementById(`description_${i}`).value,
+                        parseFloat(row.querySelector(`[name="quantity_${i}"]`).value), D.getElementById(`unit_${i}`).value,
+                        parseFloat(row.querySelector(`[name="price_${i}"]`).value), D.getElementById(`currency_${i}`).value,
+                    ];
+
+                    if(!mId || !desc || qty <= 0 || !unit || price <= 0 || !curr) {
+                        alert(`Line ${i}: Missing or wrong information.`); isValid = false; break;
+                    }
+
+                    lines.push({position: activeLines, id_material: mId, quantity: qty, unit_material: unit, price: price, currency_supplier: curr });
+                }
+            }
+
+            if (!isValid) return null;
+            if (activeLines === 0) { alert("Should be 1 line at least."); return null;}
+
+            return {id_supplier: sId, estimated_delivery_date: dDate, lines};
+        };
+
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+            const payload = serialize();
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            if (!payload) return;
+            submitBtn.disabled = true; submitBtn.textContent = 'Creating...';
+
+            try {
+                const response = await fetch(URLs.create, {
+                    method: 'POST', headers: { 'Content-Type':'application/json','X-CSRFToken': csrftoken},body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                if (response.ok && response.status === 201) {
+                    alert(`OC ${data.id_purchase_order} create successfully.`);
+                    window.location.href = dat.redirect_url || '/purchases/';} else {
+                        throw new Error(data.error || `Error ${response.status}`);
+                    }
+                } catch (error) {
+                    alert(`Creation error: ${error.message}`);
+                } finally {
+                    submitBtn.disabled = false; submitBtn.textContent = 'Create Purchase Order';
+                }
+        });
+
+        if (addB) {addB.addEventListener('click', addLine); addLine();}
+        linesC.addEventListener('click', e => {
+            if (e.traget.classList.contains('remove-item-btn'))
+            D.getElementById(`row_${e.target.dataset.rowId}`).remove();
+        });
+        searchI.addEventListener('keydown', e => {if (e.key === 'Enter') {
+            e.preventDefault(); loadSupplier(searchI.value.trim()); }});
+
+
+
+    });
+</script>
+{% endblock extra_js %}
