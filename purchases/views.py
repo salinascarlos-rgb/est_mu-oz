@@ -1,15 +1,80 @@
 import json
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
-from django.db import transaction
+from django.contrib.auth.decorators import login_required
+from django.db import transaction, models
+from django.core.paginator import Paginator
 from django.db.models import Max
 from .models import PurchaseOrder, LinesPurchaseOrder, OrderStatus
 from suppliers.models import Supplier
 from materials.models import Material, Unit
 from core.models import Currency
+from users.models import UserRole
+import csv
+
+@login_required
+def purchase_order_list(request):
+
+    max_permission = UserRole.objects.filter(user_id=request.user).aggregate(max_permission=models.Max('role__purchases'))['max_permission'] or 0
+
+    if max_permission == 0:
+        return redirect('dashboard')
+    
+    purchase_order_list = PurchaseOrder.objects.select_related('id_supplier','status','created_by').all()
+
+    id_purchase_order = request.GET.get('id_purchase_order')
+    supplier_id = request.GET.get('id_supplier__id_supplier')
+    status_symbol = request.GET.get('status__symbol')
+
+    if id_purchase_order:
+        purchase_order_list = purchase_order_list.filter(id_purchase_order__icontains=id_purchase_order)
+    if supplier_id:
+        purchase_order_list = purchase_order_list.filter(id_supplier__id_supplier__icontains=supplier_id)
+    if status_symbol:
+        try:
+            purchase_order_list = purchase_order_list.filter(status__symbol__iexact=status_symbol)
+        except OrderStatus.DoesNotExist:
+            purchase_order_list = purchase_order_list.none()
+   
+
+    if request.GET.get('export') == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="purchase_orders.csv"'
+
+        response.write('\ufeff'.encode('utf-8'))
+        writer = csv.writer(response)
+
+        writer.writerow({'ID PO', 'Supplier ID', 'Supplier Name', 'Issue Date', 'Estimated Delivery Date', 'Status Symbol', 'Status Name', 'Created By', 'CReated At'})
+
+        for po in purchase_order_list:
+            writer.writerow([
+                po.id_purchase_order,
+                po.id_supplier.id_supplier,
+                po.id_supplier.name,
+                po.issue_date.strftime('%Y-%m-%d'),
+                po.estimated_delivery_date.strftime('%Y-%m-%d'),
+                po.status.symbol,
+                po.status.name,
+                po.created_by.username if po.created_by else 'N/A',
+                po.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            ])
+        return response
+
+    paginator = Paginator(purchase_order_list,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    all_statuses_po = OrderStatus.objects.all().order_by('symbol')
+
+    context = {
+        'page_obj': page_obj,
+        'all_statuses_po': all_statuses_po,
+        'permissions': {'purchase_orders': max_permission},
+    }
+
+    return render(request, 'purchases/purchase_order_list.html', context)
 
 def get_supplier_details(request,supplier_id):
 
@@ -48,11 +113,36 @@ def get_material_details(request,material_id):
 
 def purchase_order_form(request):
 
+    max_permission = UserRole.objects.filter(user_id=request.user).aggregate(max_permission=models.Max('role__purchases'))['max_permission'] or 0
+    
+    if max_permission < 2:
+        return redirect('purchases:purchase_order_list')
+    if max_permission == 0:
+            return redirect('dashboard')
+
     context = {
+        'is_detail': False,
         'title':'Create New Purchase Order'
     }
 
-    return render(request, 'purchases/purchase_order_create.html', context)
+    return render(request, 'purchases/purchase_order_form.html', context)
+
+@login_required
+def purchase_order_detail(request,pk):
+
+    purchase_order = get_object_or_404(PurchaseOrder, pk=pk)
+
+    order_lines = LinesPurchaseOrder.objects.filter(id_purchase_order=purchase_order).order_by('position')
+
+    context = {
+        'purchase_order': purchase_order,
+        'order_lines': order_lines,
+        'is_details': True,
+        'goods_receipt_url_name': 'purchases:goods_receipt_create',
+        'invoice_url_name': 'purchases:invoice_create',
+    }
+
+    return render(request, 'purchases/purchase_order_form.html', context)
 
 @csrf_exempt
 @require_POST
@@ -135,7 +225,7 @@ def create_purchase_order(request):
             'success': True,
             'id_purchase_order': next_po_id,
             'message': f"Purchase Order {next_po_id} created succesfully.",
-            'redirect_url': '/purchases/list/'
+            'redirect_url': '/purchases/'
         }
         return JsonResponse(response_data, status=201)
 

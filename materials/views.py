@@ -34,13 +34,13 @@ def materials_list(request):
         materials_list = materials_list.filter(name__icontains=name)
     if material_type:
         try:
-            material_type_obj = MaterialType.objects.get(name_iexact=material_type)
+            material_type_obj = MaterialType.objects.get(name__iexact=material_type)
             materials_list = materials_list.filter(material_type=material_type_obj)
         except MaterialType.DoesNotExist:
             materials_list = materials_list.none()
     if status:
         try:
-            status_obj = Status.objects.get(name_iexact=status)
+            status_obj = Status.objects.get(name__iexact=status)
             materials_list = materials_list.filter(status=status_obj)
         except Status.DoesNotExist:
             materials_list = materials_list.none()
@@ -52,7 +52,7 @@ def materials_list(request):
         response.write('\ufeff'.encode('utf-8'))
         writer = csv.writer(response)
 
-        writer.writerow({'ID Material','Name','Description','Unit','Type','Status','Created By','Created At','Updated At'})
+        writer.writerow(['ID Material','Name','Description','Unit','Type','Status','Created By','Created At','Updated At'])
 
         for material in materials_list:
             writer.writerow([

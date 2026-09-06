@@ -2,7 +2,11 @@
 {% load static %}
 
 {% block title %}
-Create New Purchase Order
+{% if is_detail %}
+    Purchase Order Detail #{{ purchase_order.id_purchase_order }}
+{% else %}
+    Create New Purchase Order
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -10,7 +14,16 @@ Create New Purchase Order
 <h2 class="text-3x1 font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">Purchases</h2>
 
 <div class="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md mt-10">
-    <h2 class="text-3x1 font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">Create New Purchases Order</h2>
+    <h2 class="text-3x1 font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">{% if is_detail %}
+        Purchase Order Detail #{{ purchase_order.id_purchase_order }}
+        <span class="text-xl font-normal ml-4 text-gray-600">
+            ({{ purchase_order.status }})
+        </span>
+        {% else %}
+            Create New Purchases Order
+        {% endif %}
+        </h2>
+        
     <form method="post" class="space-y-6" onsubmit="return flase";>
         {% csrf_token %}
 
@@ -18,57 +31,70 @@ Create New Purchase Order
         <div class="flex items-center space-x-4">
             <label for="supplier_search" class="block text-sm font-medium text-gray-700 w-1/3">Supplier Search (ID)</label>
             <div class="mt-1 w-2/3">
-                <input type="text" id="supplier_search" placeholder="Enter Supplier ID and press Enter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="supplier_search" placeholder="Enter Supplier ID and press Enter" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 {% if is_detail %}bg-gray-100 cursor-not-allowed{% endif %}"
+                {% if is_detail %}readonly value="{{purchase_order.id_supplier.id_supplier}}"{% endif %}>
+
             </div>
             <div class="flex items-center space-x-4">
                 <label for="estimated_delivery_date" class="block text-sm font-medium text-gray-700 w-1/3">Estimated Delivery Date</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" id="supplier_search" placeholder="Enter Supplier ID and press Enter" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="supplier_search" placeholder="Enter Supplier ID and press Enter" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 {% if is_detail %}bg-gray-100 cursor-not-allowed{% endif %}"
+                    {% if is_detail %}readonly value="{{purchase_order.estimated_delivery_date|date:'Y-m-d'}}"{% endif %}>
+
                 </div>
             </div>
         </div>
 
-        <input type="hidden" name="supplier_pk" id="supplier_id_input">
-        <input type="hidden" name="default_currency" id="default_currency_input">
+        <input type="hidden" name="supplier_pk" id="supplier_id_input" {% if is_detail %}readonly value="{{purchase_order.id_supplier.pk}}"{% endif %}>
+        <input type="hidden" name="default_currency" id="default_currency_input" {% if is_detail %}readonly value="{{purchase_order.id_supplier.currency_supplier.symbol}}"{% endif %}>
 
         <hr class="my-6">
 
         <h3 class="text-xl font-semibold text-gray-700 mb-4">Supplier Master Data</h3>
         <div class="space-y-4" id="supplier_data_fields">
+            {% with supplier=purchase_order.id_supplier %}
             <div class="flex items-center space-x-4">
                 <label class="block text-sm font-medium text-gray-700 w-1/3">Name</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" id="name_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                    <input type="text" id="name_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                    {% if is_detail %} value="{{supplier.name}}"{% endif %}>
                 </div>
             </div>
 
             <div class="flex items-center space-x-4">
                 <label class="block text-sm font-medium text-gray-700 w-1/3">Address</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" id="address_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                    <input type="text" id="address_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                    {% if is_detail %} value="{{supplier.address}}"{% endif %}>
                 </div>
             </div>
 
             <div class="flex items-center space-x-4">
                 <label class="block text-sm font-medium text-gray-700 w-1/3">City</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" id="city_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                    <input type="text" id="city_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                    {% if is_detail %} value="{{supplier.city}}"{% endif %}>
                 </div>
             </div>
 
             <div class="flex items-center space-x-4">
                 <label class="block text-sm font-medium text-gray-700 w-1/3">State/Province</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" id="state_province_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                    <input type="text" id="state_province_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                    {% if is_detail %} value="{{supplier.state_province}}"{% endif %}>
                 </div>
             </div>
 
             <div class="flex items-center space-x-4">
                 <label class="block text-sm font-medium text-gray-700 w-1/3">Country</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" id="country_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                    <input type="text" id="country_display" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                    {% if is_detail %} value="{{supplier.country}}"{% endif %}>
                 </div>
             </div>
+            {% endwith %}
         </div>
 
         <hr class="my-6">
@@ -86,6 +112,7 @@ Create New Purchase Order
                         <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Material</th>
                         <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                         <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"> Received Qty</th>
                         <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
                         <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                         <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Currency</th>
@@ -93,15 +120,47 @@ Create New Purchase Order
                     </tr>
                 </thead>
                 <tbody id="line-items-container" class="bg-white divide-y divide-gray-200">
+                    {% if is_details %}
+                        {% for line in order_lines %}
+                            <tr id="row_{{ forloop.counter }}" class="hover:bg-gray-50">
+                                <th class="px-3 py-2 text-sm text-gray-500">{{line.position}}</th>
+                                <th class="px-3 py-2 text-sm text-gray-500">{{line.id_material.id_material}}</th>
+                                <th class="px-3 py-2 text-sm text-gray-500">{{line.id_material.description}}</th>
+                                <th class="px-3 py-2 text-sm text-gray-500">{{line.quantity}}</th>
+                                <th class="px-3 py-2 text-sm text-gray-500 font-bold text-gray-700">{{line.received_quantity}}</th>
+                                <th class="px-3 py-2 text-sm text-gray-500">{{line.unit_material.symbol}}</th>
+                                <th class="px-3 py-2 text-sm text-gray-500">{{line.price|floatformat:2}}</th>
+                                <th class="px-3 py-2 text-sm text-gray-500">{{line.currency_supplier.symbol}}</th>
+                                <th class="px-3 py-2"></th>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            {% endif %}
 
                 </tbody>
             </table>
         </div>
-        <button type="button" id="add-item-btn" class="mt-4 bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 hover_bg-green-600">Add Item</button>
+        {% if not is_detail %}
+        <button type="button" id="add-item-btn" class="mt-4 bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 hover:bg-green-600">Add Item</button>
+        {% endif %}
+
         <hr class="my-6">
+
         <div class="flex justify-end space-x-4 pt-6">
+            {% if is_detail %}
+                <a href="#" class="bg-green-600 text-white font-semibold py-2 px-6 text-center transition-colors duration-300 hover:bg-green-700">
+                    Goods Receipt
+                </a>
+                <a href="#" class="bg-blue-600 text-white font-semibold py-2 px-6 text-center transition-colors duration-300 hover:bg-blue-700">
+                    Create Invoice
+                </a>
+                <a href="{% url 'purchases:purchase_order_list'%}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray----700">
+                    Back
+                </a>
+            {% else %}
             <a href="{% url 'purchases:purchase_order_form'%}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray-400">Cancel</a>
             <button type="submit" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-[#1a2c53]">Create Purchase Order</button>
+            {% endif %}
         </div>
     </form>
 </div>
@@ -109,7 +168,12 @@ Create New Purchase Order
 {% endblock content %}
 {% block extra_js %}
 <script>
+
+    const IS_DETAIL_STR = "{{ is_detail|lower }}";
+
     window.addEventListener('load',function() {
+        window.scrollTo(0,0);
+        const isDetailBoll = (IS_DETAIL_STR === 'true');
         const D = document;
         const form = D.querySelector('form');
         const [searchI, dateI, currI, linesC, addB] = ['supplier_search', 'estimated_delivery_date', 'default_currency_input','line-items-container', 'add-item-btn'].map(id => D.getElementByIdID(id));
@@ -117,6 +181,10 @@ Create New Purchase Order
         let lineCount = 0;
         const URLs = {supplier: '/purchases/api/supplier/details/',material:'/purchases/api/material/details/', create:'/purchases/create_order/'};
         const SUPP_FIELDS = ['name', 'address', 'city', 'state_province', 'country'];
+
+        if (isDetailBoll) {
+            return;
+        }
 
         const fetchData = (url,name) => fetch(url, {method:'GET', headers: { 'X-Requested-With': 'XMLHttpRequest','X-CSRFToken':csrftoken}})
             .then(r => { if(r.status === 4040) throw new Error(`${name} no encontrado.`); if (!r.ok) throw new Error(`Error ${r.status}.`); return r.json(); });
@@ -173,7 +241,6 @@ Create New Purchase Order
             linesC.appendChild(newRow);
 
             const matI = D.getElementByIdID(`material_id_${lineCount}`);
-            matI.focus();
             matI.addEventListener('keydown', e => {
                 if (e.key === 'Enter') {e.preventDefault(); loadMaterial(e.target.value.trim(), lineCount); }
             });

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Supplier
+from core.models import Country, Currency, Status
 from .forms import SupplierForm, CsvUploadForm
 from django.core.paginator import Paginator
 from django.http import HttpResponse
@@ -77,7 +78,23 @@ def suppliers_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'suppliers/supplier_list.html', {'page_obj':page_obj})
+    try:
+        all_statuses = Status.objects.all().order_by('name')
+    except NameError:
+        all_statuses = []
+
+    try:
+        all_countries = Country.objects.all().order_by('name')
+    except NameError:
+        all_countries = []
+
+    context = {
+            'page_obj': page_obj,
+            'all_statuses': all_statuses,
+            'all countries': all_countries,
+        }
+
+    return render(request, 'suppliers/supplier_list.html', context)
 
 @login_required
 def supplier_create(request):
@@ -106,7 +123,7 @@ def supplier_create(request):
 @login_required
 def supplier_edit(request,pk):
 
-    supplier = get_object_or_404(supplier,pk=pk)
+    supplier = get_object_or_404(Supplier,pk=pk)
 
     max_permission = UserRole.objects.filter(user_id=request.user).aggregate(max_permission=models.Max('role__suppliers'))['max_permission'] or 0
 
@@ -119,7 +136,7 @@ def supplier_edit(request,pk):
         form = SupplierForm(request.POST, instance=supplier)
         if form.is_valid():
             form.save()
-            return redirect('suppliers:supplier_list')
+            return redirect('suppliers:suppliers_list')
     else:
         form = SupplierForm(instance=supplier)
 
@@ -136,15 +153,15 @@ def supplier_delete(request,pk):
     max_permission = UserRole.objects.filter(user_id=request.user).aggregate(max_permission=models.Max('role__suppliers'))['max_permission'] or 0
 
     if max_permission < 2:
-        return redirect('suppliers:supplier_list')
+        return redirect('suppliers:suppliers_list')
     
-    supplier = get_object_or_404(supplier,pk=pk)
+    supplier = get_object_or_404(Supplier,pk=pk)
 
     if request.method == 'POST':
         supplier.delete()
-        return redirect('suppliers:supplier_list')
+        return redirect('suppliers:suppliers_list')
     
-    return redirect('suppliers:supplier_list')
+    return redirect('suppliers:suppliers_list')
 
 @login_required
 def supplier_bulk_create(request):
@@ -152,7 +169,7 @@ def supplier_bulk_create(request):
     max_permission = UserRole.objects.filter(user_id=request.user).aggregate(max_permission=models.Max('role__suppliers'))['max_permission'] or 0
 
     if max_permission < 2:
-        return redirect('suppliers:supplier_list')
+        return redirect('suppliers:suppliers_list')
     
     if request.method == 'POST':
         form = CsvUploadForm(request.POST,request.FILES)
