@@ -1,5 +1,5 @@
 import json
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
@@ -7,11 +7,12 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction, models
 from django.core.paginator import Paginator
 from django.db.models import Max
-from .models import PurchaseOrder, LinesPurchaseOrder, OrderStatus
+from .models import PurchaseOrder, LinesPurchaseOrder, OrderStatus, GoodsReceipt, GoodsReceiptStatus, LinesGoodsReceipt
 from suppliers.models import Supplier
 from materials.models import Material, Unit
 from core.models import Currency
 from users.models import UserRole
+from inventory.models import LocationInventory, MovementType, InventoryMovements
 import csv
 
 @login_required
@@ -111,6 +112,7 @@ def get_material_details(request,material_id):
 
     return JsonResponse(data)
 
+@login_required
 def purchase_order_form(request):
 
     max_permission = UserRole.objects.filter(user_id=request.user).aggregate(max_permission=models.Max('role__purchases'))['max_permission'] or 0
@@ -137,6 +139,7 @@ def purchase_order_detail(request,pk):
     context = {
         'purchase_order': purchase_order,
         'order_lines': order_lines,
+        'is_detail': True,
         'is_details': True,
         'goods_receipt_url_name': 'purchases:goods_receipt_create',
         'invoice_url_name': 'purchases:invoice_create',
@@ -197,13 +200,15 @@ def create_purchase_order(request):
 
             try:
                 material = get_object_or_404(Material, id_material=material_id)
-                unit_obj = get_object_or_404(Unit, symbol=unit_symbol)
-                currency_obj = get_object_or_404(Currency, symbol=currency_symbol)
-            except Material.DoesNotExist:
+            except Http404:
                 raise ValueError(f"Material ID '{material_id}' not found for line {i}.")
-            except Unit.DoesNotExist:
+            try:
+                unit_obj = get_object_or_404(Unit, symbol=unit_symbol)
+            except Http404:
                 raise ValueError(f"Unit symbol '{unit_symbol}' not found for line {i}.")
-            except Currency.DoesNotExist:
+            try:
+                currency_obj = get_object_or_404(Currency, symbol=currency_symbol)
+            except Http404:
                 raise ValueError(f"Currency symbol '{currency_symbol}' not found for line {i}.")
 
             line_po_id = f"{next_po_id}-{str(position).zfill(3)}"
@@ -238,3 +243,154 @@ def create_purchase_order(request):
     except Exception as e:
             print(f"CRITICAL ERROR: {e}")
             return JsonResponse({'error':f'An unexpected server error ocurred: {str(e)}'}, status=500)
+
+@login_required
+def goods_receipt_form(request, po_pk):
+
+    max_permission = UserRole.objects.filter(user_id=request.user).aggregate(max_permission=models.Max('role__purchases'))['max_permission'] or 0
+    
+    if max_permission < 2:
+        return redirect('purchases:purchase_order_list')
+    if max_permission == 0:
+            return redirect('dashboard')
+
+    purchase_order = get_object_or_404(PurchaseOrder,pk=po_pk)
+
+    order_lines = LinesPurchaseOrder.objects.filter(
+        id_purchase_order=purchase_order
+    ).exclude(
+        quantity__lte=models.F('received_quantity')
+    ).order_by('position')
+
+    if not order_lines.exists():
+        return redirect('purchases:purchase_order_detail', pk=po_pk)
+
+    for line in order_lines:
+        line.pending_quantity = line.quantity - line.received_quantity
+
+    locations = LocationInventory.objects.filter(status__is_active=True).order_by('code')
+
+    context = {
+        'purchase_order': purchase_order,
+        'order_lines': order_lines,
+        'locations': locations,
+    }
+
+    return render(request, 'purchases/goods_receipt_form.html', context)
+
+@csrf_exempt
+@require_POST
+@transaction.atomic
+@login_required
+def post_goods_receipt(request):
+
+    try:
+        data = json.loads(request.body)
+
+        po_pk = data.get('po_pk')
+        receipt_date = data.get('receipt_date')
+        lines_data = data.get('lines',[])
+
+        if not lines_data:
+            return JsonResponse({'error': 'Must receipt at least 1 quantity.'}, status=400)
+
+        purchase_order = get_object_or_404(PurchaseOrder, pk=po_pk)
+
+        max_id_result = GoodsReceipt.objects.aggregate(max_id = Max('id_goods_receipt'))
+        last_id_str = max_id_result.get('max_id')
+        next_gr_number = 1
+        if last_id_str:
+            try:
+                next_gr_number = int(last_id_str) + 1
+            except ValueError:
+                next_gr_number = 1
+
+        next_gr_id = str(next_gr_number).zfill(10)
+
+        gr_status_completed = get_object_or_404(GoodsReceiptStatus, symbol='COMPLETED')
+
+        goods_receipt = GoodsReceipt.objects.create(
+            id_goods_receipt = next_gr_id,
+            id_purchase_order = purchase_order,
+            receipt_date = receipt_date,
+            status = gr_status_completed,
+            created_by = request.user,
+        )
+
+        movement_type_pur = get_object_or_404(MovementType, symbol='PUR')
+
+        total_ordered_qty = purchase_order.linespurchaseorder_set.aggregate(total=models.Sum('quantity'))['total'] or 0
+        total_previously_received = purchase_order.linespurchaseorder_set.aggregate(total=models.Sum('received_quantity'))['total'] or 0
+        total_received_in_this_gr = 0
+
+        for i, line_data in enumerate(lines_data, start=1):
+            line_pk = line_data['line_pk']
+            received_qty = int(line_data['received_quantity'])
+            location_pk = line_data['location_pk']
+
+            po_line = get_object_or_404(LinesPurchaseOrder, pk=line_pk)
+            location = get_object_or_404(LocationInventory, pk=location_pk)
+
+            if received_qty <= 0:
+                continue
+
+            available_to_receive = po_line.quantity - po_line.received_quantity
+            if received_qty > available_to_receive:
+                raise ValueError(f"Over reception in line {po_line.position}. Order: {po_line.quantity}, Receipt before: {po_line.received_quantity}, trying to receive: {received_qty}")
+
+            inventory_movement = InventoryMovements.objects.create(
+                id_inventory_movement = f"GR-{next_gr_id}-{i}",
+                id_location = location,
+                id_material = po_line.id_material,
+                quantity = received_qty,
+                unit_type = po_line.unit_material,
+                movement_type = movement_type_pur,
+                price = po_line.price,
+                currency = po_line.currency_supplier,
+                created_by = request.user,
+            )
+
+            line_gr_id = f"{next_gr_id}-{str(i).zfill(3)}"
+            LinesGoodsReceipt.objects.create(
+                id_goods_receipt_line = line_gr_id,
+                id_goods_receipt = goods_receipt,
+                id_purchase_order_line = po_line,
+                id_material = po_line.id_material,
+                received_quantity = received_qty,
+                unit_material = po_line.unit_material,
+                id_location =  location,
+                inventory_movement_ref = inventory_movement.id_inventory_movement,
+                created_by = request.user,
+            )
+
+            po_line.received_quantity += received_qty
+            po_line.save()
+
+            total_received_in_this_gr += received_qty
+
+        total_final_received = total_previously_received + total_received_in_this_gr
+
+        status_completed = get_object_or_404(OrderStatus, symbol='RECEIVED')
+        status_partially_received = get_object_or_404(OrderStatus, symbol='PARTIAL_RECEIVED')
+        if total_final_received >= total_ordered_qty:
+            purchase_order.status = status_completed
+        elif total_final_received > 0:
+            purchase_order.status = status_partially_received
+
+        purchase_order.save()
+
+        response_data = {
+            'success': True,
+            'id_goods_receipt': next_gr_id,
+            'redirect_url': purchase_order.get_absolute_url() if hasattr(purchase_order, 'get_absolute_url') else f'/purchases/{po_pk}/detail/',
+        }
+        return JsonResponse(response_data, status=200)
+
+    except ValueError as e:
+        return JsonResponse({'error': f'Validation Error: {str(e)}'}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format in request body.'}, status=400)
+    except Exception as e:
+        print(f"CRITICAL ERROR: {e}")
+        return JsonResponse({'error': f'An unexpected server error ocurred: {str(e)}'}, status=500)
+

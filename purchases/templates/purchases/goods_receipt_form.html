@@ -1,0 +1,233 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}
+Goods Receipt for PO #{{ purchase_order.id_purchase_order }}
+{% endblock %}
+
+{% block content %}
+
+<h2 class="text-3x1 font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">Goods Receipt</h2>
+
+<div class="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md mt-10">
+    <h2 class="text-3x1 font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">
+        Goods Receipt for Purchase Order #{{ purchase_order.id_purchase_order }}
+    </h2>
+        
+    <form method="post" id="goods-receipt-form" class="space-y-6">
+        {% csrf_token %}
+
+        <input type="hidden" name="po_pk" value="{{ purchase_order.pk }}">
+
+        <h3 class="text-xl font-semibold text-gray-700 mb-4">Delivery Information (Header)</h3>
+        <div class="flex items-center space-x-4">
+            <label for="receipt_date" class="block text-sm font-medium text-gray-700 w-1/3">Delivery Date *</label>
+            <div class="mt-1 w-2/3">
+                <input type="date" name="receipt_date" id="receipt_date" required 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+        </div>
+
+        <hr class="my-6">
+
+        <h3 class="text-xl font-semibold text-gray-700 mb-4">Supplier Master Data</h3>
+        {% with supplier=purchase_order.id_supplier %}
+        <div class="space-y-4"> 
+            <div class="flex items-center space-x-4">
+                <label class="block text-sm font-medium text-gray-700 w-1/3">Supplier Name</label>
+                    <input type="text" readonly class="w-2/3 px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                    value="{{supplier.name}}">
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <label class="block text-sm font-medium text-gray-700 w-1/3">Currency</label>
+                    <input type="text" readonly class="w-2/3 px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                    value="{{supplier.currency}}">
+            </div>
+        </div>
+        {% endwith %}
+
+        <hr class="my-6">
+
+        <h3 class="text-xl font-semibold text-gray-700 mb-4"> Line Items to Receive</h3>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Material</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ordered Qty</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Received Before</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Received Qty *</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location *</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    </tr>
+                </thead>
+                <tbody id="line-items-container" class="bg-white divide-y divide-gray-200">
+                        {% for line in order_lines %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.position}}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.id_material.id_material}}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.quantity}}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.received_quantity}}</td>
+                                <td class="px-3 py-2">
+                                    <input type="number"
+                                        id="qty_{{ line.pk }}"
+                                        name="qty_{{ line.pk }}"
+                                        data-pk="{{ line.pk }}"
+                                        data-ordered-qty="{{ line.quantity }}"
+                                        data-received-before="{{ line.received_quantity }}"
+                                        value="{{ line.pending_quantity }}"
+                                        min=0
+                                        max="{{ line.pending_quantity }}"
+                                        class = "input-received-qty w-20 px-2 py-1 border border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500 text-right">
+                                </td>
+                                <td class="px-3 py-2">
+                                    <select name="location_{{ line.pk }}" required class="w-32 px-2 py-1 border border-gray-300 rounded-md text-sm focus:ring-green-500 focus:border-green-500">
+                                        <option value="">Select Location</option>
+                                        {% for location in locations %}
+                                        <option value="{{ location.pk }}">{{ location.code }} - {{ location.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.unit_material.symbol}}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.price|floatformat:2}} {{line.currency_supplier.symbol}}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.currency_supplier.symbol}}</td>
+                                <input type="hidden" name="line_pk" value="{{ line.pk }}">
+                            </tr>
+                            {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <hr class="my-6">
+
+        <div class="flex justify-end space-x-4 pt-6">
+                <a href="{% url 'purchases:purchase_order_detail' pk=purchase_order.pk %}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray-400">
+                    Cancel 
+                </a>
+            <button type="submit" id="post-gr-btn" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-green-700">Post Goods Receipt                
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock content %}
+{% block extra_js %}
+<script>
+
+
+    window.addEventListener('DOMContentLoaded',function() {
+        window.scrollTo(0,0);
+        const form = document.getElementById('goods-receipt-form');
+        const submitBtn = document.getElementById('post-gr-btn');
+        const inputReceivedQtys = document.querySelectorAll('.input-received-qty');
+
+        const validateQuantities = () => {
+            let totalReceived = 0;
+            inputReceivedQtys.forEach(input => {
+                totalReceived += parseFloat(input.value) || 0;
+            });
+            return totalReceived > 0;
+        };
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if(!validateQuantities()) {
+                alert('Must received at least 1 quantity.');
+                return;
+            }
+
+            const poPk = form.querySelector('[name="po_pk"]').value;
+            const receiptDate = form.querySelector('[name="receipt_date"]').value;
+            const csrftoken = form.querySelector('[name="csrfmiddlewaretoken"]').value;
+
+            if (!receiptDate) {
+                alert('Delivery Date is mandatory.');
+                return;
+            }
+
+            const lines = [];
+            let allLocationSelected = true;
+
+            form.querySelectorAll('input[name="line_pk"]').forEach(hiddenInput => {
+                const linePk = hiddenInput.value;
+                const qtyInput = document.getElementById(`qty_${linePk}`);
+                const locationSelect = form.querySelector(`select[name="location_${linePk}"]`);
+                const receivedQty = parseFloat(qtyInput.value) || 0;
+                const locationPK = locationSelect.value;
+
+                if (receivedQty > 0) {
+                    if (!locationPK) {
+                        allLocationSelected = false;
+                    }
+
+                    lines.push({
+                        line_pk : linePk,
+                        received_quantity : receivedQty,
+                        location_pk : locationPK
+                    });
+                }
+            });
+
+            if (!allLocationSelected) {
+                alert('Please, select storage location for each line with received quantity.');
+                return;
+            }
+
+            const payload = {
+                po_pk : poPk,
+                receipt_date : receiptDate,
+                lines : lines
+            };
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+
+            try {
+                const response = await fetch('{% url "purchases:post_goods_receipt" %}', {
+                    method : 'POST',
+                    headers : {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken' : csrftoken
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if(response.ok) {
+                    alert(`Goods Receipt ${data.id_goods_receipt} posted successfully. PO Status updated.`);
+                    window.location.href = data.redirect_url;
+                }else{
+                    throw new Error(data.error || `Error ${response.status}`);
+                }
+            } catch (error) {
+                alert(`Error saving goods receipt: ${error.message}`);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Post Goods Receipt';
+            }
+        });
+
+        inputReceivedQtys.forEach(input => {
+            input.addEventListener('input', function() {
+                const max = parseFloat(this.getAttribute('max'));
+                let value = parseFloat(this.value);
+
+                if (isNaN(value) || value < 0) {
+                    this.value = 0;
+                    value = 0;
+                }
+
+                if (value > max) {
+                    this.value = max;
+                }
+            });
+        });
+
+    });
+</script>
+{% endblock extra_js %}

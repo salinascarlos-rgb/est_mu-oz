@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
-from core.models import Status
+from core.models import Status, Currency
 from materials.models import Material,Unit
 
 class MovementType(models.Model):
@@ -48,6 +48,10 @@ class InventoryMovements(models.Model):
     id_material = models.ForeignKey(Material, on_delete=models.PROTECT, verbose_name="Material ID")
     quantity = models.IntegerField(verbose_name="Quantity")
     unit_type = models.ForeignKey(Unit, on_delete=models.PROTECT, verbose_name="Unit Type")
+
+    price = models.FloatField(verbose_name='Price',default=0.0)
+    currency = models.ForeignKey(Currency,on_delete=models.PROTECT,verbose_name='Currency')
+
     movement_type = models.ForeignKey(MovementType, on_delete=models.PROTECT, verbose_name="Movement ID")
 
     created_at = models.DateTimeField(auto_now_add=True)

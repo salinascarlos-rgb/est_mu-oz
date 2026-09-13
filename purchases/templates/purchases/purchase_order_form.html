@@ -24,7 +24,7 @@
         {% endif %}
         </h2>
         
-    <form method="post" class="space-y-6" onsubmit="return flase";>
+    <form method="post" class="space-y-6">
         {% csrf_token %}
 
         <h3 class="text-xl font-semibold text-gray-700 mb-4">Supplier Selection</h3>
@@ -39,7 +39,7 @@
             <div class="flex items-center space-x-4">
                 <label for="estimated_delivery_date" class="block text-sm font-medium text-gray-700 w-1/3">Estimated Delivery Date</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" id="supplier_search" placeholder="Enter Supplier ID and press Enter" 
+                    <input type="date" name="estimated_delivery_date" id="estimated_delivery_date" required 
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 {% if is_detail %}bg-gray-100 cursor-not-allowed{% endif %}"
                     {% if is_detail %}readonly value="{{purchase_order.estimated_delivery_date|date:'Y-m-d'}}"{% endif %}>
 
@@ -123,15 +123,15 @@
                     {% if is_details %}
                         {% for line in order_lines %}
                             <tr id="row_{{ forloop.counter }}" class="hover:bg-gray-50">
-                                <th class="px-3 py-2 text-sm text-gray-500">{{line.position}}</th>
-                                <th class="px-3 py-2 text-sm text-gray-500">{{line.id_material.id_material}}</th>
-                                <th class="px-3 py-2 text-sm text-gray-500">{{line.id_material.description}}</th>
-                                <th class="px-3 py-2 text-sm text-gray-500">{{line.quantity}}</th>
-                                <th class="px-3 py-2 text-sm text-gray-500 font-bold text-gray-700">{{line.received_quantity}}</th>
-                                <th class="px-3 py-2 text-sm text-gray-500">{{line.unit_material.symbol}}</th>
-                                <th class="px-3 py-2 text-sm text-gray-500">{{line.price|floatformat:2}}</th>
-                                <th class="px-3 py-2 text-sm text-gray-500">{{line.currency_supplier.symbol}}</th>
-                                <th class="px-3 py-2"></th>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.position}}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.id_material.id_material}}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.id_material.description}}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.quantity}}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500 font-bold text-gray-700">{{line.received_quantity}}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.unit_material.symbol}}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.price|floatformat:2}}</td>
+                                <td class="px-3 py-2 text-sm text-gray-500">{{line.currency_supplier.symbol}}</td>
+                                <td class="px-3 py-2"></td>
                             </tr>
                             {% endfor %}
                             {% else %}
@@ -148,10 +148,10 @@
 
         <div class="flex justify-end space-x-4 pt-6">
             {% if is_detail %}
-                <a href="#" class="bg-green-600 text-white font-semibold py-2 px-6 text-center transition-colors duration-300 hover:bg-green-700">
+                <a href="{% url 'purchases:goods_receipt_create' po_pk=purchase_order.pk %}" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg text-center transition-colors duration-300 hover:bg-green-700">
                     Goods Receipt
                 </a>
-                <a href="#" class="bg-blue-600 text-white font-semibold py-2 px-6 text-center transition-colors duration-300 hover:bg-blue-700">
+                <a href="#" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg text-center transition-colors duration-300 hover:bg-blue-700">
                     Create Invoice
                 </a>
                 <a href="{% url 'purchases:purchase_order_list'%}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray----700">
@@ -176,8 +176,8 @@
         const isDetailBoll = (IS_DETAIL_STR === 'true');
         const D = document;
         const form = D.querySelector('form');
-        const [searchI, dateI, currI, linesC, addB] = ['supplier_search', 'estimated_delivery_date', 'default_currency_input','line-items-container', 'add-item-btn'].map(id => D.getElementByIdID(id));
-        const csrf_token = D.querySelector('[name=csrfmiddlewaretoken]').value;
+        const [searchI, dateI, currI, linesC, addB] = ['supplier_search', 'estimated_delivery_date', 'default_currency_input','line-items-container', 'add-item-btn'].map(id => D.getElementById(id));
+        const csrftoken = D.querySelector('[name=csrfmiddlewaretoken]').value;
         let lineCount = 0;
         const URLs = {supplier: '/purchases/api/supplier/details/',material:'/purchases/api/material/details/', create:'/purchases/create_order/'};
         const SUPP_FIELDS = ['name', 'address', 'city', 'state_province', 'country'];
@@ -189,12 +189,12 @@
         const fetchData = (url,name) => fetch(url, {method:'GET', headers: { 'X-Requested-With': 'XMLHttpRequest','X-CSRFToken':csrftoken}})
             .then(r => { if(r.status === 4040) throw new Error(`${name} no encontrado.`); if (!r.ok) throw new Error(`Error ${r.status}.`); return r.json(); });
 
-        const updateCurrencies = (curr) => { for(let i = 1; i <= lineCount; i++){ const c = D.getElementByIdID(`currency_${i}`); if (c) c.value = curr || '';}};
+        const updateCurrencies = (curr) => { for(let i = 1; i <= lineCount; i++){ const c = D.getElementById(`currency_${i}`); if (c) c.value = curr || '';}};
         
-        const fullSupplier = (data,id) => {
-            D.getElementByIdID('supplier_id_input').value = id || '';
+        const fillSupplier = (data,id) => {
+            D.getElementById('supplier_id_input').value = id || '';
             SUPP_FIELDS.forEach(f => {const el = 
-                D.getElementByIdID(`${f}_display`); if (el) el.value = data[f] || '';
+                D.getElementById(`${f}_display`); if (el) el.value = data[f] || '';
             });
             const curr = data.currency || '';
             currI.value = curr;
@@ -212,13 +212,13 @@
             if (!id) return;
             fetchData(`${URLs.material}${id}/`, 'Material')
                 .then(data => {
-                    D.getElementByIdID(`description_${roeId}`).value = data.description || '';
-                    D.getElementByIdID(`unit_${roeId}`).value = data.unit || '';
-                    D.getElementByIdID(`currency_${roeId}`).value = currI.value || '';
+                    D.getElementById(`description_${rowId}`).value = data.description || '';
+                    D.getElementById(`unit_${rowId}`).value = data.unit || '';
+                    D.getElementById(`currency_${rowId}`).value = currI.value || '';
                 })
                 .catch(error => {
                     alert(`Error: ${error.message}.`);
-                    ['description','unit','currency'].forEach(f => D.getElementByIdID(`${f}_${rowId}`).value = '');
+                    ['description','unit','currency'].forEach(f => D.getElementById(`${f}_${rowId}`).value = '');
                 });
         };
 
@@ -230,7 +230,7 @@
             <td class="px-3 py-2"><input type="text" id="unit_${c}" name="unit_${c}" required class="w-40 px-2 py-1 border border-gray-300 rounded-md text-sm bg-gray-100 cursor-not-allowed"></td>
             <td class="px-3 py-2"><input type="text" id="price_${c}" name="price_${c}" required class="w-24 px-2 py-1 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"></td>
             <td class="px-3 py-2"><input type="text" id="currency_${c}" name="currency_${c}" required class="w-40 px-2 py-1 border border-gray-300 rounded-md text-sm bg-gray-100 cursor-not-allowed"></td>
-            <td class="px-3 py-2"><button type="button" class="remove-item-btn text-red-600 hover:text-red-900" data-row-id="${c}"></button></td>
+            <td class="px-3 py-2"><button type="button" class="remove-item-btn text-red-600 hover:text-red-900" data-row-id="${c}">Remove</button></td>
         `;
 
         const addLine = () => {
@@ -240,14 +240,14 @@
             newRow.innerHTML = createRowHTML(lineCount, currI.value);
             linesC.appendChild(newRow);
 
-            const matI = D.getElementByIdID(`material_id_${lineCount}`);
+            const matI = D.getElementById(`material_id_${lineCount}`);
             matI.addEventListener('keydown', e => {
                 if (e.key === 'Enter') {e.preventDefault(); loadMaterial(e.target.value.trim(), lineCount); }
             });
         };
 
         const serialize = () => {
-            const [sId, dDate] = [D.getElementByIdID('supplier_id_input').value, dateI.value];
+            const [sId, dDate] = [D.getElementById('supplier_id_input').value, dateI.value];
             if (!sId || !dDate) { alert('Pending Supplier or Delivery Date.'); return null; }
             let [isValid, activeLines, lines] = [true, 0, []];
 
@@ -291,7 +291,7 @@
                 const data = await response.json();
                 if (response.ok && response.status === 201) {
                     alert(`OC ${data.id_purchase_order} create successfully.`);
-                    window.location.href = dat.redirect_url || '/purchases/';} else {
+                    window.location.href = data.redirect_url || '/purchases/';} else {
                         throw new Error(data.error || `Error ${response.status}`);
                     }
                 } catch (error) {
@@ -303,7 +303,7 @@
 
         if (addB) {addB.addEventListener('click', addLine); addLine();}
         linesC.addEventListener('click', e => {
-            if (e.traget.classList.contains('remove-item-btn'))
+            if (e.target.classList.contains('remove-item-btn'))
             D.getElementById(`row_${e.target.dataset.rowId}`).remove();
         });
         searchI.addEventListener('keydown', e => {if (e.key === 'Enter') {
