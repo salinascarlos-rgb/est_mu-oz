@@ -94,7 +94,6 @@ Goods Receipt for PO #{{ purchase_order.id_purchase_order }}
                                 </td>
                                 <td class="px-3 py-2 text-sm text-gray-500">{{line.unit_material.symbol}}</td>
                                 <td class="px-3 py-2 text-sm text-gray-500">{{line.price|floatformat:2}} {{line.currency_supplier.symbol}}</td>
-                                <td class="px-3 py-2 text-sm text-gray-500">{{line.currency_supplier.symbol}}</td>
                                 <input type="hidden" name="line_pk" value="{{ line.pk }}">
                             </tr>
                             {% endfor %}

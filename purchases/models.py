@@ -41,7 +41,7 @@ class PurchaseOrder(models.Model):
 
 class LinesPurchaseOrder(models.Model):
     id_purchase_order_line = models.CharField(max_length=10, verbose_name="ID Purchase Order Line")
-    id_puechase_order = models.ForeignKey(PurchaseOrder, default=1, on_delete=models.PROTECT,verbose_name="Purchase Order")
+    id_purchase_order = models.ForeignKey(PurchaseOrder, default=1, on_delete=models.PROTECT,verbose_name="Purchase Order")
     id_material = models.ForeignKey(Material, default=1, on_delete=models.PROTECT,verbose_name="Material", related_name="id_material_1")
     position = models.IntegerField(default=1,verbose_name="Position")
     quantity = models.IntegerField(default=0,verbose_name="Quantity")
@@ -100,7 +100,7 @@ class GoodsReceipt(models.Model):
 class LinesGoodsReceipt(models.Model):
 
     id_goods_receipt_line = models.CharField(max_length=10, verbose_name="ID Goods Receipt Line")
-    id_goods_recipt = models.ForeignKey(GoodsReceipt, default=1, on_delete=models.PROTECT,verbose_name="Goods Receipt", related_name='lines')
+    id_goods_receipt = models.ForeignKey(GoodsReceipt, default=1, on_delete=models.PROTECT,verbose_name="Goods Receipt", related_name='lines')
     id_purchase_order_line = models.ForeignKey(LinesPurchaseOrder, on_delete=models.PROTECT,verbose_name="Purchase Order Line")
     id_material = models.ForeignKey(Material, default=1, on_delete=models.PROTECT,verbose_name="Material")
     received_quantity = models.IntegerField(verbose_name="Received Quantity")

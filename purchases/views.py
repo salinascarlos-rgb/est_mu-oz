@@ -89,13 +89,13 @@ def get_supplier_details(request,supplier_id):
         'address': supplier.address,
         'city': supplier.city,
         'state_province': supplier.state_province,
-        'country': supplier.country.name,
+        'country': supplier.country.name if supplier.country else '',
         'zip_code': supplier.zip_code,
         'phone': supplier.phone,
         'email': supplier.email,
         'contact_name': supplier.contact_name,
         'payment_terms': supplier.payment_terms,
-        'currency': supplier.currency.symbol,
+        'currency': supplier.currency.symbol if supplier.currency else '',
     }
 
     return JsonResponse(data)

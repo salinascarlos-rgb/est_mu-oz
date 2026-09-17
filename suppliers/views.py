@@ -33,7 +33,7 @@ def suppliers_list(request):
     if name:
         suppliers_list = suppliers_list.filter(name__icontains=name)
     if country:
-        suppliers_list = suppliers_list.filter(country__icontains=country)
+        suppliers_list = suppliers_list.filter(country__name__icontains=country)
     if status is not None and status != '':
         suppliers_list = suppliers_list.filter(status=status)
 

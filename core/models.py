@@ -15,9 +15,10 @@ class Status(models.Model):
 
 class Currency(models.Model):
     name = models.CharField(max_length=50, unique=True)
+    symbol = models.CharField(max_length=10, unique=True, verbose_name='Symbol')
 
     def __str__(self):
-        return self.name
+        return self.symbol
 
 
 class Country(models.Model):
