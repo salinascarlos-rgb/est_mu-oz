@@ -148,12 +148,16 @@
 
         <div class="flex justify-end space-x-4 pt-6">
             {% if is_detail %}
+                {% if purchase_order.status.symbol != 'RECEIVED' and purchase_order.status.symbol != 'CLOSED' %}
                 <a href="{% url 'purchases:goods_receipt_create' po_pk=purchase_order.pk %}" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg text-center transition-colors duration-300 hover:bg-green-700">
                     Goods Receipt
                 </a>
-                <a href="#" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg text-center transition-colors duration-300 hover:bg-blue-700">
+                {% endif %}
+                {% if purchase_order.status.symbol != 'RECEIVED' and purchase_order.status.symbol != 'CLOSED' %}
+                <a href="{% url 'purchases:purchase_invoice_create' po_pk=purchase_order.pk %}" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg text-center transition-colors duration-300 hover:bg-blue-700">
                     Create Invoice
                 </a>
+                {% endif %}
                 <a href="{% url 'purchases:purchase_order_list'%}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray----700">
                     Back
                 </a>

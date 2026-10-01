@@ -7,12 +7,14 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction, models
 from django.core.paginator import Paginator
 from django.db.models import Max
-from .models import PurchaseOrder, LinesPurchaseOrder, OrderStatus, GoodsReceipt, GoodsReceiptStatus, LinesGoodsReceipt
+from django.contrib import messages
+from .models import PurchaseOrder, LinesPurchaseOrder, OrderStatus, GoodsReceipt, GoodsReceiptStatus, LinesGoodsReceipt, PurchaseInvoice, InvoiceStatus, LinesPurchaseInvoice
 from suppliers.models import Supplier
 from materials.models import Material, Unit
 from core.models import Currency
 from users.models import UserRole
 from inventory.models import LocationInventory, MovementType, InventoryMovements
+from accounting.models import AccountAccount, Journal
 import csv
 
 @login_required
@@ -323,6 +325,11 @@ def post_goods_receipt(request):
         total_previously_received = purchase_order.linespurchaseorder_set.aggregate(total=models.Sum('received_quantity'))['total'] or 0
         total_received_in_this_gr = 0
 
+        status_received = get_object_or_404(OrderStatus, symbol='RECEIVED')
+        status_partially_received = get_object_or_404(OrderStatus, symbol='PARTIAL:RECEIVED')
+        status_invoiced = get_object_or_404(OrderStatus, symbol='INVOICED')
+        status_closed = get_object_or_404(OrderStatus, symbol='CLOSED')
+
         for i, line_data in enumerate(lines_data, start=1):
             line_pk = line_data['line_pk']
             received_qty = int(line_data['received_quantity'])
@@ -370,18 +377,183 @@ def post_goods_receipt(request):
 
         total_final_received = total_previously_received + total_received_in_this_gr
 
-        status_completed = get_object_or_404(OrderStatus, symbol='RECEIVED')
-        status_partially_received = get_object_or_404(OrderStatus, symbol='PARTIAL_RECEIVED')
+        current_status_symbol = purchase_order.status.symbol
+
         if total_final_received >= total_ordered_qty:
-            purchase_order.status = status_completed
+            if current_status_symbol == status_invoiced.symbol:
+                purchase_order.status = status_closed
+            else:
+                purchase_order.status = status_received
+
         elif total_final_received > 0:
-            purchase_order.status = status_partially_received
+            if current_status_symbol != status_invoiced.symbol:
+                purchase_order.status = status_partially_received
 
         purchase_order.save()
 
         response_data = {
             'success': True,
             'id_goods_receipt': next_gr_id,
+            'redirect_url': purchase_order.get_absolute_url() if hasattr(purchase_order, 'get_absolute_url') else f'/purchases/{po_pk}/detail/',
+        }
+        return JsonResponse(response_data, status=200)
+
+    except ValueError as e:
+        return JsonResponse({'error': f'Validation Error: {str(e)}'}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON format in request body.'}, status=400)
+    except Exception as e:
+        print(f"CRITICAL ERROR: {e}")
+        return JsonResponse({'error': f'An unexpected server error ocurred: {str(e)}'}, status=500)
+
+@login_required
+def purchase_invoice_form(request, po_pk):
+
+    max_permission = UserRole.objects.filter(user_id=request.user).aggregate(max_permission=models.Max('role__purchases'))['max_permission'] or 0
+    
+    if max_permission < 2:
+        return redirect('purchases:purchase_order_list')
+    if max_permission == 0:
+            return redirect('dashboard')
+
+    purchase_order = get_object_or_404(PurchaseOrder,pk=po_pk)
+
+    if purchase_order.status.symbol in ['CLOSED','INVOICED']:
+        messages.warning(request, f"The purchase order {po_pk} is already invoiced or closed. It's not possible to create a new invoice")
+        return redirect('purchases:purchase_order_detail', pk=po_pk)
+
+    order_lines_qs = LinesPurchaseOrder.objects.filter(id_purchase_order=purchase_order).order_by('position')
+
+    currency = purchase_order.id_supplier.currency
+
+    for line in order_lines_qs:
+        line.quantity_to_invoice = line.quantity
+        line.line_total = line.quantity_to_invoice * line.price
+
+    context = {
+        'purchase_order': purchase_order,
+        'order_lines': order_lines_qs,
+        'currency': currency,
+        'total_ordered_amount': sum(line.quantity * line.price for line in order_lines_qs)
+    }
+
+    return render(request, 'purchases/purchase_invoice_form.html', context)
+
+@csrf_exempt
+@require_POST
+@transaction.atomic
+@login_required
+def post_purchase_invoice(request):
+
+    try:
+        data = json.loads(request.body)
+
+        po_pk = data.get('po_pk')
+        due_date = data.get('due_date')
+        lines_data = data.get('lines',[])
+
+        if not lines_data or not due_date:
+            return JsonResponse({'error': 'Missing lines or due date.'}, status=400)
+
+        purchase_order = get_object_or_404(PurchaseOrder, pk=po_pk)
+        if purchase_order.status.symbol in ['CLOSED','INVOICED']:
+            messages.warning(request, f"The purchase order {po_pk} is already invoiced or closed. It's not possible to create a new invoice")
+            return redirect('purchases:purchase_order_detail', pk=po_pk)
+
+        supplier = purchase_order.id_supplier
+        max_id_result = PurchaseInvoice.objects.aggregate(max_id = Max('id_invoice'))
+        last_id_str = max_id_result.get('max_id')
+        next_invoice_number = (int(last_id_str)+1) if last_id_str and last_id_str.isdigit() else 1
+        next_invoice_id = str(next_invoice_number).zfill(10)
+
+        invoice_status_pending = get_object_or_404(InvoiceStatus, symbol='PAID')
+
+        total_amount = 0
+        invoiced_lines = []
+        for i, line_data in enumerate(lines_data, start=1):
+            po_line = get_object_or_404(LinesPurchaseOrder, pk=line_data['line_pk'])
+            qty_to_invoice = int(line_data['quantity_to_invoice'])
+
+            if qty_to_invoice <= 0: continue
+
+            line_total = qty_to_invoice * po_line.price
+            total_amount += line_total
+
+            line_invoice_id = f"{next_invoice_id}-{str(i).afill(3)}"
+            invoice_line = LinesPurchaseInvoice(
+                id_invoice_line = line_invoice_id,
+                id_purchase_order_line = po_line,
+                price = po_line.price,
+                quantity = qty_to_invoice,
+                currency_invoice_line = purchase_order.id_supplier.currency,
+                created_by = request.user
+            )
+            invoiced_lines.append(invoice_line)
+
+        if total_amount == 0:
+            return JsonResponse({'error': 'Total amount is zero. Check quantities.'}, status=400)
+
+        gr_status_completed = get_object_or_404(GoodsReceiptStatus, symbol='COMPLETED')
+
+        purchase_invoice = PurchaseInvoice.objects.create(
+            id_invoice = next_invoice_id,
+            id_purchase_order = purchase_order,
+            due_date = due_date,
+            total_amount = total_amount,
+            currency_invoice = purchase_order.id_supplier.currency,
+            status = invoice_status_pending,
+            created_by = request.user,
+        )
+
+        for line in invoiced_lines:
+            line.id_purchase_invoice = purchase_invoice
+            line.save()
+
+        try:
+            purchases_account = get_object_or_404(AccountAccount, code='1200')
+            bank_account = get_object_or_404(AccountAccount, code='1001')
+
+        except Exception as e:
+            raise ValueError(f"Accounting: Accounts required not found. Error: {e}")
+
+        group_id = purchase_invoice.id_invoice
+
+        Journal.objects.create(
+            id_journal = f"INV-{group_id}-D1",
+            group_journal = group_id,
+            reference = f"INV -{group_id} - Inventory/Purchases (Paid)",
+            id_account = purchases_account,
+            credit = 0.0,
+            debit = total_amount,
+            currency = purchase_order.id_supplier.currency,
+            created_by = request.user,
+        )
+
+        Journal.objects.create(
+            id_journal = f"INV-{group_id}-C1",
+            group_journal = group_id,
+            reference = f"INV -{group_id} - Payment from bank",
+            id_account = bank_account,
+            credit = total_amount,
+            debit = 0.0,
+            currency = purchase_order.id_supplier.currency,
+            created_by = request.user,
+        )
+
+        status_received = get_object_or_404(OrderStatus, symbol='RECEIVED')
+        status_closed = get_object_or_404(OrderStatus, symbol='CLOSED')
+        status_invoiced = get_object_or_404(OrderStatus, symbol='INVOICED')
+
+        if purchase_order.status.symbol == status_received.symbol:
+            purchase_order.status = status_closed
+        else:
+            purchase_order.status = status_invoiced
+
+        purchase_order.save()
+
+        response_data = {
+            'success': True,
+            'id_invoiced': next_invoice_id,
             'redirect_url': purchase_order.get_absolute_url() if hasattr(purchase_order, 'get_absolute_url') else f'/purchases/{po_pk}/detail/',
         }
         return JsonResponse(response_data, status=200)

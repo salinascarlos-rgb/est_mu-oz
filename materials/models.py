@@ -45,4 +45,4 @@ class Material(models.Model):
         verbose_name_plural = "Materials"
 
     def __str__(self):
-        return self.name
+        return self.id_material

@@ -118,3 +118,63 @@ class LinesGoodsReceipt(models.Model):
 
     def __str__(self):
         return self.id_goods_receipt_line
+
+class InvoiceStatus(models.Model):
+
+    name = models.CharField(max_length=200, verbose_name="Name")
+    symbol = models.CharField(max_length=100, blank=True, verbose_name="Symbol")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        verbose_name="Invoice Status"
+        verbose_name_plural = "Invoice Status"
+
+    def __str__(self):
+        return self.symbol
+
+class PurchaseInvoice(models.Model):
+
+    id_invoice = models.CharField(max_length=10, verbose_name='ID Purchase Invoice')
+    id_purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.PROTECT, verbose_name="Purchase Order Ref")
+
+    invoice_date = models.DateField(auto_now_add=True, verbose_name='Invoice Date')
+    due_date = models.DateField(verbose_name='Payment Due Date')
+    total_amount = models.FloatField(verbose_name='Total Amount', default=0.0)
+    currency_invoice = models.ForeignKey(Currency, on_delete=models.PROTECT, verbose_name='Currency')
+
+    status = models.ForeignKey(InvoiceStatus, default=1, on_delete=models.PROTECT, verbose_name="Status")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        verbose_name="Purchase Invoice"
+        verbose_name_plural = "Purchase Invoices"
+
+    def __str__(self):
+        return self.id_invoice
+
+
+class LinesPurchaseInvoice(models.Model):
+
+    id_invoice_line = models.CharField(max_length=10, verbose_name="ID Invoice Line")
+    id_purchase_invoice = models.ForeignKey(PurchaseInvoice, on_delete=models.PROTECT,verbose_name="Purchase Invoice", related_name='lines')
+    id_purchase_order_line = models.ForeignKey(LinesPurchaseOrder, on_delete=models.PROTECT,verbose_name="Purchase Order Line")
+    price = models.FloatField(verbose_name="Unit Price")
+    currency_invoice_line = models.ForeignKey(Currency, on_delete=models.PROTECT,verbose_name="Currency")
+    quantity = models.IntegerField(verbose_name="Invoiced Quantity")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        verbose_name="Line Purchase Invoice"
+        verbose_name_plural = "Lines Purchase Invoices"
+
+    def __str__(self):
+        return self.id_invoice_line
