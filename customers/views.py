@@ -20,7 +20,7 @@ def customers_list(request):
     if max_permission == 0:
         return redirect('dashboard')
     
-    customers_list = Customer.objects.all()
+    customers_list = Customer.objects.all().order_by('id_customer')
 
     id_customer = request.GET.get('id_customer')
     name = request.GET.get('name')

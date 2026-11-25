@@ -21,7 +21,7 @@ def suppliers_list(request):
     if max_permission == 0:
         return redirect('dashboard')
     
-    suppliers_list = Supplier.objects.all()
+    suppliers_list = Supplier.objects.all().order_by('id_supplier')
 
     id_supplier = request.GET.get('id_supplier')
     name = request.GET.get('name')

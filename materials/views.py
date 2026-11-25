@@ -21,7 +21,7 @@ def materials_list(request):
     if max_permission == 0:
         return redirect('dashboard')
     
-    materials_list = Material.objects.all()
+    materials_list = Material.objects.all().order_by('id_material')
 
     id_material = request.GET.get('id_material')
     name = request.GET.get('name')

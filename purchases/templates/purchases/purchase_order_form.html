@@ -11,7 +11,15 @@
 
 {% block content %}
 
-<h2 class="text-3x1 font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">Purchases</h2>
+<h2 class="text-3xl font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">Purchases</h2>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="max-w-xl mx-auto mb-4 p-4 rounded-lg {% if message.tags == 'warning' %}bg-yellow-100 text-yellow-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+{% endif %}
 
 <div class="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md mt-10">
     <h2 class="text-3x1 font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">{% if is_detail %}
@@ -148,21 +156,23 @@
 
         <div class="flex justify-end space-x-4 pt-6">
             {% if is_detail %}
-                {% if purchase_order.status.symbol != 'RECEIVED' and purchase_order.status.symbol != 'CLOSED' %}
+                {% if can_edit %}
+                {% if purchase_order.status.symbol != 'RECEIVED' and purchase_order.status.symbol != 'CLOSED' and purchase_order.status.symbol != 'CANCELLED' %}
                 <a href="{% url 'purchases:goods_receipt_create' po_pk=purchase_order.pk %}" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg text-center transition-colors duration-300 hover:bg-green-700">
                     Goods Receipt
                 </a>
                 {% endif %}
-                {% if purchase_order.status.symbol != 'RECEIVED' and purchase_order.status.symbol != 'CLOSED' %}
+                {% if purchase_order.status.symbol != 'INVOICED' and purchase_order.status.symbol != 'CLOSED' and purchase_order.status.symbol != 'CANCELLED' %}
                 <a href="{% url 'purchases:purchase_invoice_create' po_pk=purchase_order.pk %}" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg text-center transition-colors duration-300 hover:bg-blue-700">
                     Create Invoice
                 </a>
                 {% endif %}
-                <a href="{% url 'purchases:purchase_order_list'%}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray----700">
+                {% endif %}
+                <a href="{% url 'purchases:purchase_order_list'%}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray-400">
                     Back
                 </a>
             {% else %}
-            <a href="{% url 'purchases:purchase_order_form'%}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray-400">Cancel</a>
+            <a href="{% url 'purchases:purchase_order_list'%}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray-400">Cancel</a>
             <button type="submit" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-[#1a2c53]">Create Purchase Order</button>
             {% endif %}
         </div>
@@ -191,7 +201,7 @@
         }
 
         const fetchData = (url,name) => fetch(url, {method:'GET', headers: { 'X-Requested-With': 'XMLHttpRequest','X-CSRFToken':csrftoken}})
-            .then(r => { if(r.status === 4040) throw new Error(`${name} no encontrado.`); if (!r.ok) throw new Error(`Error ${r.status}.`); return r.json(); });
+            .then(r => { if(r.status === 404) throw new Error(`${name} no encontrado.`); if (!r.ok) throw new Error(`Error ${r.status}.`); return r.json(); });
 
         const updateCurrencies = (curr) => { for(let i = 1; i <= lineCount; i++){ const c = D.getElementById(`currency_${i}`); if (c) c.value = curr || '';}};
         
@@ -244,10 +254,13 @@
             newRow.innerHTML = createRowHTML(lineCount, currI.value);
             linesC.appendChild(newRow);
 
-            const matI = D.getElementById(`material_id_${lineCount}`);
+            const rowId = lineCount;
+            const matI = D.getElementById(`material_id_${rowId}`);
+            const onMaterial = () => loadMaterial(matI.value.trim(), rowId);
             matI.addEventListener('keydown', e => {
-                if (e.key === 'Enter') {e.preventDefault(); loadMaterial(e.target.value.trim(), lineCount); }
+                if (e.key === 'Enter') {e.preventDefault(); onMaterial(); }
             });
+            matI.addEventListener('change', onMaterial);
         };
 
         const serialize = () => {
@@ -300,7 +313,6 @@
                     }
                 } catch (error) {
                     alert(`Creation error: ${error.message}`);
-                } finally {
                     submitBtn.disabled = false; submitBtn.textContent = 'Create Purchase Order';
                 }
         });
