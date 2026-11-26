@@ -121,11 +121,17 @@ class Command(BaseCommand):
         """Crea lo que falta y deja el nombre en español en lo que ya existe."""
         created = 0
         for name, symbol in rows:
-            obj, was_created = model.objects.get_or_create(symbol=symbol, defaults={'name': name})
-            if not was_created and obj.name != name:
+            obj = model.objects.filter(symbol=symbol).first()
+            # Si otro registro ya usa ese nombre (p. ej. 'Unidad' con símbolo UND),
+            # se agrega el símbolo para no chocar con la restricción de nombre único
+            if model.objects.filter(name=name).exclude(symbol=symbol).exists():
+                name = f"{name} ({symbol})"
+            if obj is None:
+                model.objects.create(symbol=symbol, name=name)
+                created += 1
+            elif obj.name != name:
                 obj.name = name
                 obj.save(update_fields=['name'])
-            created += was_created
         return created
 
     @transaction.atomic
