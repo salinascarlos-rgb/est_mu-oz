@@ -190,7 +190,7 @@ Purchase Invoice for PO #{{ purchase_order.id_purchase_order }}
                 const data = await response.json();
 
                 if(response.ok) {
-                    alert(`Purchase Invoice ${data.id_goods_receipt} posted successfully. PO Status updated.`);
+                    alert(`Purchase Invoice ${data.id_invoice} posted successfully. PO Status updated.`);
                     window.location.href = data.redirect_url;
                 }else{
                     throw new Error(data.error || `Error ${response.status}`);

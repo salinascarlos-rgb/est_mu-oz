@@ -99,11 +99,11 @@
     </table>
 
 {% if page_obj.has_other_pages %}
-<div class="felx justify-center mt-6">
+<div class="flex justify-center mt-6">
     <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
         {% if page_obj.has_previous %}
         <a href="?page={{page_obj.previous_page_number}}&id_purchase_order={{request.GET.id_purchase_order}}&id_supplier__id_supplier={{request.GET.id_supplier__id_supplier}}&status__symbol={{request.GET.status__symbol}}" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-            <span class="sr.only">Previous</span>
+            <span class="sr-only">Previous</span>
             &lsaquo;
         </a>
         {% endif %}
@@ -114,20 +114,20 @@
             {{ i }}
         </span>
         {% else %}
-        <a href="?page={{ i }}{{page_obj.previous_page_number}}&id_purchase_order={{request.GET.id_purchase_order}}&id_supplier__id_supplier={{request.GET.id_supplier__id_supplier}}&status__symbol={{request.GET.status__symbol}}" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+        <a href="?page={{ i }}&id_purchase_order={{request.GET.id_purchase_order}}&id_supplier__id_supplier={{request.GET.id_supplier__id_supplier}}&status__symbol={{request.GET.status__symbol}}" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
             {{ i }}
         </a>
         {% endif %}
         {% endfor %}
 
         {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number}}{{page_obj.previous_page_number}}&id_purchase_order={{request.GET.id_purchase_order}}&id_supplier__id_supplier={{request.GET.id_supplier__id_supplier}}&status__symbol={{request.GET.status__symbol}}" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+        <a href="?page={{ page_obj.next_page_number}}&id_purchase_order={{request.GET.id_purchase_order}}&id_supplier__id_supplier={{request.GET.id_supplier__id_supplier}}&status__symbol={{request.GET.status__symbol}}" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
             <span class="sr-only">Next</span>
             &rsaquo;
         </a>
-        <a href="?page={{ page_obj.paginator.num_pages}}{{page_obj.previous_page_number}}&id_purchase_order={{request.GET.id_purchase_order}}&id_supplier__id_supplier={{request.GET.id_supplier__id_supplier}}&status__symbol={{request.GET.status__symbol}}" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-            <span class="sr-only">Next</span>
-            &rsaquo;
+        <a href="?page={{ page_obj.paginator.num_pages}}&id_purchase_order={{request.GET.id_purchase_order}}&id_supplier__id_supplier={{request.GET.id_supplier__id_supplier}}&status__symbol={{request.GET.status__symbol}}" class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+            <span class="sr-only">Last</span>
+            &raquo;
         </a>
         {% endif %}
     </nav>
