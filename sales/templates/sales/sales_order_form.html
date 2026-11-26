@@ -12,12 +12,12 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label for="customer_search" class="block text-sm font-medium text-gray-700">ID cliente</label>
-                <input type="text" id="customer_search" placeholder="Escriba el ID y presione Enter" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#233b6e]">
+                <input type="text" id="customer_search" placeholder="Escriba el ID y presione Enter" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00843D]">
                 <input type="hidden" id="customer_id">
             </div>
             <div>
                 <label for="estimated_delivery_date" class="block text-sm font-medium text-gray-700">Fecha estimada de entrega</label>
-                <input type="date" id="estimated_delivery_date" min="{% now 'Y-m-d' %}" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#233b6e]">
+                <input type="date" id="estimated_delivery_date" min="{% now 'Y-m-d' %}" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00843D]">
             </div>
         </div>
 
@@ -54,11 +54,11 @@
             </table>
         </div>
 
-        <button type="button" id="add-line" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-300">+ Agregar línea</button>
+        <button type="button" id="add-line" class="bg-[#00843D] text-white font-semibold py-2 px-4 rounded-lg hover:bg-[#006B31] transition-colors duration-300">+ Agregar línea</button>
 
         <div class="flex justify-end space-x-4 pt-4 border-t">
             <a href="{% url 'sales:sales_order_list' %}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400 transition-colors duration-300">Cancelar</a>
-            <button type="submit" id="submit-btn" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg hover:bg-[#1a2c53] transition-colors duration-300">Crear orden de venta</button>
+            <button type="submit" id="submit-btn" class="bg-[#00843D] text-white font-semibold py-2 px-6 rounded-lg hover:bg-[#006B31] transition-colors duration-300">Crear orden de venta</button>
         </div>
     </form>
 </div>

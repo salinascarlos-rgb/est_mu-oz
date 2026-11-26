@@ -26,13 +26,13 @@
             </select>
         </div>
         <div class="flex flex-wrap gap-2 md:justify-end">
-            <button type="submit" class="bg-[#233b6e] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#1a2c53] transition-colors duration-300">Filtrar</button>
+            <button type="submit" class="bg-[#00843D] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#006B31] transition-colors duration-300">Filtrar</button>
             <a href="{% url 'sales:sales_order_list' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-300">Limpiar</a>
-            <a href="{% querystring export='csv' page=None %}" class="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-300">Exportar CSV</a>
+            <a href="{% querystring export='csv' page=None %}" class="bg-[#00843D] text-white font-semibold px-4 py-2 rounded-lg hover:bg-[#006B31] transition-colors duration-300">Exportar CSV</a>
         </div>
         {% if can_edit %}
         <div class="md:col-span-4 flex justify-end">
-            <a href="{% url 'sales:sales_order_form' %}" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg hover:bg-[#1a2c53] transition-colors duration-300">Crear OV</a>
+            <a href="{% url 'sales:sales_order_form' %}" class="bg-[#00843D] text-white font-semibold py-2 px-6 rounded-lg hover:bg-[#006B31] transition-colors duration-300">Crear OV</a>
         </div>
         {% endif %}
     </form>
@@ -54,11 +54,11 @@
         <tbody class="bg-white divide-y divide-gray-200">
             {% for so in page_obj %}
             <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#233b6e] underline"><a href="{% url 'sales:sales_order_detail' pk=so.pk %}">{{ so.id_sales_order }}</a></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#00843D] underline"><a href="{% url 'sales:sales_order_detail' pk=so.pk %}">{{ so.id_sales_order }}</a></td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ so.id_customer.id_customer }} <span class="text-gray-500">- {{ so.id_customer.name }}</span></td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ so.issue_date|date:"Y-m-d" }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ so.estimated_delivery_date|date:"Y-m-d" }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">{{ so.status.name }}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm"><span class="px-2 py-1 rounded-full text-xs font-semibold bg-[#E8F8EF] text-[#005C2A]">{{ so.status.name }}</span></td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{{ so.total_amount|floatformat:0|intcomma }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ so.created_by.username|default:"N/A" }}</td>
             </tr>
