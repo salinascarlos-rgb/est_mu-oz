@@ -11,8 +11,8 @@ class User(AbstractUser):
 
     class Meta:
         db_table = 'users'
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
+        verbose_name = 'Usuario'
+        verbose_name_plural = 'Usuarios'
 
 class Role(models.Model):
     PERMISSION_CHOICES = [
@@ -33,7 +33,7 @@ class Role(models.Model):
 
     class Meta:
         db_table = 'roles'
-        verbose_name = 'Role'
+        verbose_name = 'Rol'
         verbose_name_plural = 'Roles'
 
     def __str__(self):
@@ -46,8 +46,8 @@ class UserRole(models.Model):
 
     class Meta:
         db_table = 'user_roles'
-        verbose_name = 'User Role'
-        verbose_name_plural = 'User Roles'
+        verbose_name = 'Rol de usuario'
+        verbose_name_plural = 'Roles de usuario'
         unique_together = ('user_id', 'role')
 
     def __str__(self):

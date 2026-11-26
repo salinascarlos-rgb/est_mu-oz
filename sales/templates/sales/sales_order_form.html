@@ -11,21 +11,21 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label for="customer_search" class="block text-sm font-medium text-gray-700">Customer ID</label>
-                <input type="text" id="customer_search" placeholder="Enter ID and press Enter" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#233b6e]">
+                <label for="customer_search" class="block text-sm font-medium text-gray-700">ID cliente</label>
+                <input type="text" id="customer_search" placeholder="Escriba el ID y presione Enter" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#233b6e]">
                 <input type="hidden" id="customer_id">
             </div>
             <div>
-                <label for="estimated_delivery_date" class="block text-sm font-medium text-gray-700">Est. Delivery Date</label>
+                <label for="estimated_delivery_date" class="block text-sm font-medium text-gray-700">Fecha estimada de entrega</label>
                 <input type="date" id="estimated_delivery_date" min="{% now 'Y-m-d' %}" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#233b6e]">
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <input type="text" id="name_display" placeholder="Name" readonly class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-100">
-            <input type="text" id="city_display" placeholder="City" readonly class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-100">
-            <input type="text" id="address_display" placeholder="Address" readonly class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-100">
-            <input type="text" id="currency_display" placeholder="Currency" readonly class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-100">
+            <input type="text" id="name_display" placeholder="Nombre" readonly class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-100">
+            <input type="text" id="city_display" placeholder="Ciudad" readonly class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-100">
+            <input type="text" id="address_display" placeholder="Dirección" readonly class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-100">
+            <input type="text" id="currency_display" placeholder="Moneda" readonly class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-100">
         </div>
 
         <div class="overflow-x-auto">
@@ -33,12 +33,12 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Material</th>
-                        <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
-                        <th class="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase">Available</th>
-                        <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
-                        <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                        <th class="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase">WAC</th>
-                        <th class="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase">Margin</th>
+                        <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Bodega</th>
+                        <th class="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase">Disponible</th>
+                        <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cant.</th>
+                        <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Precio</th>
+                        <th class="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase">Costo prom.</th>
+                        <th class="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase">Margen</th>
                         <th class="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
                         <th></th>
                     </tr>
@@ -46,7 +46,7 @@
                 <tbody id="lines"></tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="7" class="px-2 py-3 text-right text-sm font-semibold text-gray-700">Order total</td>
+                        <td colspan="7" class="px-2 py-3 text-right text-sm font-semibold text-gray-700">Total de la orden</td>
                         <td id="order_total" class="px-2 py-3 text-right text-sm font-bold text-gray-900">0</td>
                         <td></td>
                     </tr>
@@ -54,11 +54,11 @@
             </table>
         </div>
 
-        <button type="button" id="add-line" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-300">+ Add Item</button>
+        <button type="button" id="add-line" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-300">+ Agregar línea</button>
 
         <div class="flex justify-end space-x-4 pt-4 border-t">
-            <a href="{% url 'sales:sales_order_list' %}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400 transition-colors duration-300">Cancel</a>
-            <button type="submit" id="submit-btn" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg hover:bg-[#1a2c53] transition-colors duration-300">Create Sales Order</button>
+            <a href="{% url 'sales:sales_order_list' %}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400 transition-colors duration-300">Cancelar</a>
+            <button type="submit" id="submit-btn" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg hover:bg-[#1a2c53] transition-colors duration-300">Crear orden de venta</button>
         </div>
     </form>
 </div>
@@ -67,13 +67,13 @@
     <tr class="line">
         <td class="px-2 py-2">
             <select class="material w-44 px-2 py-1 border border-gray-300 rounded-md text-sm bg-white">
-                <option value="">Select...</option>
+                <option value="">Seleccione...</option>
                 {% for m in materials %}<option value="{{ m.pk }}">{{ m.id_material }} - {{ m.name }}</option>{% endfor %}
             </select>
         </td>
         <td class="px-2 py-2">
             <select class="location w-40 px-2 py-1 border border-gray-300 rounded-md text-sm bg-white">
-                <option value="">Select...</option>
+                <option value="">Seleccione...</option>
                 {% for loc in locations %}<option value="{{ loc.pk }}">{{ loc.code }} - {{ loc.name }}</option>{% endfor %}
             </select>
         </td>
@@ -83,7 +83,7 @@
         <td class="wac px-2 py-2 text-right text-sm text-gray-500">—</td>
         <td class="margin px-2 py-2 text-right text-sm font-semibold">—</td>
         <td class="total px-2 py-2 text-right text-sm text-gray-900">0</td>
-        <td class="px-2 py-2"><button type="button" class="remove text-red-600 hover:text-red-900 text-sm">Remove</button></td>
+        <td class="px-2 py-2"><button type="button" class="remove text-red-600 hover:text-red-900 text-sm">Quitar</button></td>
     </tr>
 </template>
 {% endblock content %}
@@ -114,7 +114,7 @@
         const id = customerInput.value.trim();
         if (!id) { fillCustomer({}); return; }
         const r = await fetch(URLS.customer.replace('__ID__', encodeURIComponent(id)));
-        if (!r.ok) { alert(`Customer "${id}" not found.`); fillCustomer({}); return; }
+        if (!r.ok) { alert(`No se encontró el cliente "${id}".`); fillCustomer({}); return; }
         fillCustomer(await r.json());
     };
     customerInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); loadCustomer(); } });
@@ -130,7 +130,7 @@
         row.querySelector('.total').textContent = fmt(qty * price);
         if (price > 0) {
             const margin = ((price - wac) / price) * 100;
-            marginCell.textContent = `${margin.toFixed(2)}%`;
+            marginCell.textContent = `${margin.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}%`;
             marginCell.className = `margin px-2 py-2 text-right text-sm font-semibold ${margin < 0 ? 'text-red-600' : 'text-green-700'}`;
         } else {
             marginCell.textContent = '—';
@@ -153,7 +153,7 @@
         row.dataset.available = data.available;
         row.dataset.wac = data.wac;
         row.querySelector('.available').textContent = `${fmt(data.available)} ${data.unit}`;
-        row.querySelector('.available').title = `Physical: ${data.physical} / Reserved: ${data.reserved}`;
+        row.querySelector('.available').title = `Físico: ${data.physical} / Reservado: ${data.reserved}`;
         row.querySelector('.wac').textContent = fmt(data.wac);
         recalc(row);
     }
@@ -173,8 +173,8 @@
         e.preventDefault();
         const customerId = D.getElementById('customer_id').value;
         const delivery = D.getElementById('estimated_delivery_date').value;
-        if (!customerId) { alert('Search and select a customer first (type the ID and press Enter).'); return; }
-        if (!delivery) { alert('Estimated delivery date is required.'); return; }
+        if (!customerId) { alert('Primero busque el cliente (escriba el ID y presione Enter).'); return; }
+        if (!delivery) { alert('La fecha estimada de entrega es obligatoria.'); return; }
 
         const lines = [];
         const rows = linesBody.querySelectorAll('tr.line');
@@ -187,14 +187,14 @@
                 price: parseFloat(row.querySelector('.price').value),
             };
             if (!line.material_id || !line.location_id || !(line.quantity > 0) || !(line.price > 0)) {
-                alert(`Line ${i + 1}: complete material, location, quantity and price.`); return;
+                alert(`Línea ${i + 1}: complete material, bodega, cantidad y precio.`); return;
             }
             lines.push(line);
         }
-        if (!lines.length) { alert('Add at least one line.'); return; }
+        if (!lines.length) { alert('Agregue al menos una línea.'); return; }
 
         const btn = D.getElementById('submit-btn');
-        btn.disabled = true; btn.textContent = 'Creating...';
+        btn.disabled = true; btn.textContent = 'Creando...';
         try {
             const r = await fetch(URLS.create, {
                 method: 'POST',
@@ -207,7 +207,7 @@
             window.location.href = data.redirect_url;
         } catch (err) {
             alert(`Error: ${err.message}`);
-            btn.disabled = false; btn.textContent = 'Create Sales Order';
+            btn.disabled = false; btn.textContent = 'Crear orden de venta';
         }
     });
 })();

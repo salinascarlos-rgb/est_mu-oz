@@ -22,7 +22,7 @@ class SalesTests(TestCase):
     def setUpTestData(cls):
         call_command('seed_data', verbosity=0)
         cls.user = User.objects.create_user(username='admin', password='pass12345')
-        UserRole.objects.create(user_id=cls.user, role=Role.objects.get(role_name='Administrator'))
+        UserRole.objects.create(user_id=cls.user, role=Role.objects.get(role_name='Administrador'))
         cls.viewer = User.objects.create_user(username='viewer', password='pass12345')
         UserRole.objects.create(user_id=cls.viewer, role=Role.objects.create(role_name='SalesViewer', sales=1))
 
@@ -32,7 +32,7 @@ class SalesTests(TestCase):
             contact_role='Compras', category='Ferretería', payment_terms='30', currency='COP',
             payment_method='Transfer', bank_account='1', status='Active',
         )
-        cls.material = Material.objects.create(id_material='M001', name='Estuco', unit=Unit.objects.get(symbol='UND'))
+        cls.material = Material.objects.create(id_material='M001', name='Estuco', unit=Unit.objects.get(symbol='UN'))
         cls.bodega = LocationInventory.objects.create(id_location='L1', name='Bodega', code='B1')
         # 10 unidades compradas a 12.000 COP
         InventoryMovements.objects.create(
@@ -74,7 +74,7 @@ class SalesTests(TestCase):
         self.assertEqual(self.post_order([self.line(7)]).status_code, 201)
         r = self.post_order([self.line(4)])                     # solo quedan 3 disponibles
         self.assertEqual(r.status_code, 400)
-        self.assertIn('Available: 3', r.json()['error'])
+        self.assertIn('Disponible: 3', r.json()['error'])
 
     def test_repeated_lines_are_added_up(self):
         # Dos líneas de 6 suman 12 > 10: el curso las validaba por separado

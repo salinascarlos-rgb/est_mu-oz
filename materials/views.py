@@ -52,7 +52,7 @@ def materials_list(request):
         response.write('\ufeff'.encode('utf-8'))
         writer = csv.writer(response)
 
-        writer.writerow(['ID Material','Name','Description','Unit','Type','Status','Created By','Created At','Updated At'])
+        writer.writerow(['ID material','Nombre','Descripción','Unidad','Tipo','Estado','Creado por','Creado el','Actualizado el'])
 
         for material in materials_list:
             writer.writerow([
@@ -176,6 +176,10 @@ def material_bulk_create(request):
                 status.name.strip().lower(): status
                 for status in Status.objects.all()
             }
+            # Se aceptan también los nombres en inglés de archivos CSV anteriores
+            for status in Status.objects.all():
+                for alias in (['active', 'activo'] if status.is_active else ['inactive', 'inactivo']):
+                    status_map.setdefault(alias, status)
 
             unit_map = {
                 unit.symbol.strip().lower(): unit
@@ -234,7 +238,7 @@ def material_bulk_create(request):
                     error_records.append({
                         'row':row_number,
                         'data': row,
-                        'errors':{'unit':f'Unit "{unit_value}" not found or invalid.'}
+                        'errors':{'unit':f'La unidad "{unit_value}" no existe o no es válida.'}
                     })
                     continue
 
@@ -247,7 +251,7 @@ def material_bulk_create(request):
                     error_records.append({
                         'row':row_number,
                         'data': row,
-                        'errors':{'material_type':f'Material Type "{material_type_value}" not found or invalid.'}
+                        'errors':{'material_type':f'El tipo de material "{material_type_value}" no existe o no es válido.'}
                     })
                     continue
 
@@ -260,7 +264,7 @@ def material_bulk_create(request):
                     error_records.append({
                         'row':row_number,
                         'data': row,
-                        'errors':{'status':f'Status "{status_value}" not found or invalid.'}
+                        'errors':{'status':f'El estado "{status_value}" no existe o no es válido.'}
                     })
                     continue
 
@@ -285,7 +289,7 @@ def material_bulk_create(request):
             if materials_to_create:
                 Material.objects.bulk_create(materials_to_create)
 
-            messages.success(request, f'Process finished. {len(successful_records)} materials created succesfully.')
+            messages.success(request, f'Proceso terminado. Se crearon {len(successful_records)} materiales.')
 
             context = {
                 'form': form,

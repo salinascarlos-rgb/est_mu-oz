@@ -16,14 +16,14 @@ class InventoryTests(TestCase):
         call_command('seed_data', verbosity=0)
 
         cls.user = User.objects.create_user(username='admin', password='pass12345')
-        UserRole.objects.create(user_id=cls.user, role=Role.objects.get(role_name='Administrator'))
+        UserRole.objects.create(user_id=cls.user, role=Role.objects.get(role_name='Administrador'))
 
         cls.viewer = User.objects.create_user(username='viewer', password='pass12345')
         UserRole.objects.create(user_id=cls.viewer, role=Role.objects.create(role_name='Viewer', inventory=1))
 
         cls.nobody = User.objects.create_user(username='nobody', password='pass12345')
 
-        cls.material = Material.objects.create(id_material='M001', name='Estuco', unit=Unit.objects.get(symbol='UND'))
+        cls.material = Material.objects.create(id_material='M001', name='Estuco', unit=Unit.objects.get(symbol='UN'))
         cls.bodega = LocationInventory.objects.create(id_location='L1', name='Bodega', code='B1')
         cls.local = LocationInventory.objects.create(id_location='L2', name='Local', code='B2')
 
@@ -62,7 +62,7 @@ class InventoryTests(TestCase):
             'quantity': 50, 'description': 'Error',
         })
         self.assertEqual(r.status_code, 200)
-        self.assertContains(r, 'Not enough stock')
+        self.assertContains(r, 'No hay suficiente existencia')
         self.assertEqual(services.get_stock(self.material, self.bodega), 10)
 
     def test_transfer_moves_stock_between_locations(self):
@@ -91,7 +91,7 @@ class InventoryTests(TestCase):
             self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
         r = self.client.get(reverse('inventory:stock_list'), {'export': 'csv'})
         lines = r.content.decode('utf-8-sig').splitlines()
-        self.assertTrue(lines[0].startswith('Location Code'))
+        self.assertTrue(lines[0].startswith('Código bodega'))
         self.assertIn('M001', lines[1])
         self.assertIn('20000', lines[1])   # 10 x 2.000
 
@@ -119,7 +119,7 @@ class InventoryTests(TestCase):
                 'location': self.bodega.pk, 'quantity': 1, 'description': 'Muestra para cliente'}
         r = self.client.post(reverse('inventory:create_movement'), data)
         self.assertEqual(r.status_code, 200)
-        self.assertContains(r, 'Cost Center is required')
+        self.assertContains(r, 'El centro de costo es obligatorio')
         data['cost_center'] = CostCenter.objects.get(id_cost_center='VEN').pk
         r = self.client.post(reverse('inventory:create_movement'), data)
         self.assertRedirects(r, reverse('inventory:movements_list'))
@@ -150,7 +150,7 @@ class SnapshotDataMixin:
         call_command('seed_data', verbosity=0)
         cls.user = User.objects.create_user(username='admin', password='pass12345')
         cls.cop = Currency.objects.get(symbol='COP')
-        cls.material = Material.objects.create(id_material='M001', name='Estuco', unit=Unit.objects.get(symbol='UND'))
+        cls.material = Material.objects.create(id_material='M001', name='Estuco', unit=Unit.objects.get(symbol='UN'))
         cls.bodega = LocationInventory.objects.create(id_location='L1', name='Bodega', code='B1')
         cls.local = LocationInventory.objects.create(id_location='L2', name='Local', code='B2')
 
@@ -214,13 +214,13 @@ class StockSnapshotTests(SnapshotDataMixin, TestCase):
         self.assertEqual(mv.exchange_rate, Decimal('4000'))
 
     def test_stock_screen_shows_base_currency_value(self):
-        UserRole.objects.create(user_id=self.user, role=Role.objects.get(role_name='Administrator'))
+        UserRole.objects.create(user_id=self.user, role=Role.objects.get(role_name='Administrador'))
         self.client.force_login(self.user)
         self.movement('E1', 'PUR', 10, days_ago=0, price=40000)
         services.sync_daily_stock()
         r = self.client.get(reverse('inventory:stock_list'))
-        self.assertContains(r, 'Value in USD')
-        self.assertContains(r, '100.00')                 # 10 x 10 USD
+        self.assertContains(r, 'Valor en USD')
+        self.assertContains(r, '100,00')                 # 10 x 10 USD (formato colombiano)
 
 
 @override_settings(BASE_CURRENCY='USD')
@@ -228,7 +228,7 @@ class StockByDateTests(SnapshotDataMixin, TestCase):
     """Lista de stock filtrada por fecha (video 17)."""
 
     def test_past_date_shows_snapshot(self):
-        UserRole.objects.create(user_id=self.user, role=Role.objects.get(role_name='Administrator'))
+        UserRole.objects.create(user_id=self.user, role=Role.objects.get(role_name='Administrador'))
         self.client.force_login(self.user)
         self.movement('F1', 'PUR', 10, days_ago=2, price=40000)
         self.movement('F2', 'LOSS', 3, days_ago=0)
@@ -239,7 +239,7 @@ class StockByDateTests(SnapshotDataMixin, TestCase):
         self.assertIn(',10,', line)          # ayer había 10
         r = self.client.get(reverse('inventory:stock'), {'export': 'csv'})
         self.assertIn(',7,', r.content.decode('utf-8-sig').splitlines()[1])   # hoy quedan 7
-        self.assertEqual(Stock.objects.get(date=yesterday).unit_type.symbol, 'UND')
+        self.assertEqual(Stock.objects.get(date=yesterday).unit_type.symbol, 'UN')
 
 
 class BackgroundTaskTests(TestCase):

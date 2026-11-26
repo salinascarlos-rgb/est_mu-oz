@@ -20,7 +20,7 @@ class PurchaseFlowTests(TestCase):
         call_command('seed_data', verbosity=0)
 
         cls.user = User.objects.create_user(username='admin', password='pass12345')
-        UserRole.objects.create(user_id=cls.user, role=Role.objects.get(role_name='Administrator'))
+        UserRole.objects.create(user_id=cls.user, role=Role.objects.get(role_name='Administrador'))
 
         cls.viewer = User.objects.create_user(username='viewer', password='pass12345')
         viewer_role = Role.objects.create(role_name='Viewer', purchases=1)
@@ -33,7 +33,7 @@ class PurchaseFlowTests(TestCase):
             email='p@x.com', contact_name='Ana', contact_role='Ventas', category='MP',
             payment_terms='30', currency=cop, payment_method='Transfer', bank_account='123', status='Active',
         )
-        cls.material = Material.objects.create(id_material='M001', name='Estuco', unit=Unit.objects.get(symbol='UND'))
+        cls.material = Material.objects.create(id_material='M001', name='Estuco', unit=Unit.objects.get(symbol='UN'))
         cls.location = LocationInventory.objects.create(id_location='L1', name='Bodega', code='B1')
 
     def setUp(self):
@@ -45,7 +45,7 @@ class PurchaseFlowTests(TestCase):
     def create_po(self, quantity=10, price=1000):
         return self.post_json('purchases:create_purchase_order', {
             'id_supplier': 'P001', 'estimated_delivery_date': '2026-12-31',
-            'lines': [{'id_material': 'M001', 'unit_material': 'UND', 'currency_supplier': 'COP',
+            'lines': [{'id_material': 'M001', 'unit_material': 'UN', 'currency_supplier': 'COP',
                        'quantity': quantity, 'price': price}],
         })
 
@@ -107,7 +107,7 @@ class PurchaseFlowTests(TestCase):
     def test_invalid_material_does_not_leave_half_order(self):
         r = self.post_json('purchases:create_purchase_order', {
             'id_supplier': 'P001', 'estimated_delivery_date': '2026-12-31',
-            'lines': [{'id_material': 'NOPE', 'unit_material': 'UND', 'currency_supplier': 'COP',
+            'lines': [{'id_material': 'NOPE', 'unit_material': 'UN', 'currency_supplier': 'COP',
                        'quantity': 1, 'price': 1}],
         })
         self.assertEqual(r.status_code, 400)

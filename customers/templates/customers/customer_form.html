@@ -2,15 +2,15 @@
 {% load static %}
 
 {% block title %}
-{% if customer %}Edit Customer{% else %}Create New Customer{% endif %}
+{% if customer %}Editar cliente{% else %}Crear cliente{% endif %}
 {% endblock %}
 
 {% block content %}
 
-<h2 class="text-3x1 font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">Customers</h2>
+<h2 class="text-3xl font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">Clientes</h2>
 
 <div class="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md mt-10">
-    <h2 class="text-3x1 font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">{% if customer %}Edit Customer{% else %}Create New Customer{% endif %}</h2>
+    <h2 class="text-3xl font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">{% if customer %}Editar cliente{% else %}Crear cliente{% endif %}</h2>
     <form method="post" class="space-y-6">
         {% csrf_token %}
         {% if form.non_field_errors %}
@@ -20,7 +20,7 @@
         {% endif %}
         <div class="space-y-4">
             <div class="flex items-center space-x-4">
-                <label for="{{ form.id_customer.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">ID customer</label>
+                <label for="{{ form.id_customer.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">ID cliente</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.id_customer.html_name}}" id="{{form.id_customer.id_for_label}}" value="{{form.id_customer.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.id_customer.errors %}
@@ -31,7 +31,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.legal_name.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Legal Name</label>
+                <label for="{{ form.legal_name.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Razón social</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.legal_name.html_name}}" id="{{form.legal_name.id_for_label}}" value="{{form.legal_name.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.legal_name.errors %}
@@ -42,7 +42,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.name.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Name</label>
+                <label for="{{ form.name.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Nombre</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.name.html_name}}" id="{{form.name.id_for_label}}" value="{{form.name.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.name.errors %}
@@ -53,7 +53,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.tax_id.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Tax ID</label>
+                <label for="{{ form.tax_id.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">NIT</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.tax_id.html_name}}" id="{{form.tax_id.id_for_label}}" value="{{form.tax_id.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.tax_id.errors %}
@@ -64,7 +64,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.country.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Country</label>
+                <label for="{{ form.country.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">País</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.country.html_name}}" id="{{form.country.id_for_label}}" value="{{form.country.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.country.errors %}
@@ -75,7 +75,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.state_province.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">State/Province</label>
+                <label for="{{ form.state_province.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Departamento</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.state_province.html_name}}" id="{{form.state_province.id_for_label}}" value="{{form.state_province.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.state_province.errors %}
@@ -86,7 +86,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.city.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">City</label>
+                <label for="{{ form.city.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Ciudad</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.city.html_name}}" id="{{form.city.id_for_label}}" value="{{form.city.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.city.errors %}
@@ -97,7 +97,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.address.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Address</label>
+                <label for="{{ form.address.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Dirección</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.address.html_name}}" id="{{form.address.id_for_label}}" value="{{form.address.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.address.errors %}
@@ -108,7 +108,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.zip_code.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Zip Code</label>
+                <label for="{{ form.zip_code.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Código postal</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.zip_code.html_name}}" id="{{form.zip_code.id_for_label}}" value="{{form.zip_code.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.zip_code.errors %}
@@ -119,7 +119,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.phone.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Phone</label>
+                <label for="{{ form.phone.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Teléfono</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.phone.html_name}}" id="{{form.phone.id_for_label}}" value="{{form.phone.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.phone.errors %}
@@ -130,7 +130,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.email.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Email</label>
+                <label for="{{ form.email.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Correo</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.email.html_name}}" id="{{form.email.id_for_label}}" value="{{form.email.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.email.errors %}
@@ -141,7 +141,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.contact_name.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Contact name</label>
+                <label for="{{ form.contact_name.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Nombre de contacto</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.contact_name.html_name}}" id="{{form.contact_name.id_for_label}}" value="{{form.contact_name.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.contact_name.errors %}
@@ -152,7 +152,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.contact_role.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Contact role</label>
+                <label for="{{ form.contact_role.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Cargo del contacto</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.contact_role.html_name}}" id="{{form.contact_role.id_for_label}}" value="{{form.contact_role.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.contact_role.errors %}
@@ -163,7 +163,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.category.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Category</label>
+                <label for="{{ form.category.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Categoría</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.category.html_name}}" id="{{form.category.id_for_label}}" value="{{form.category.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.category.errors %}
@@ -174,7 +174,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.payment_terms.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Payment terms</label>
+                <label for="{{ form.payment_terms.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Plazo de pago</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.payment_terms.html_name}}" id="{{form.payment_terms.id_for_label}}" value="{{form.payment_terms.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.payment_terms.errors %}
@@ -185,7 +185,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.currency.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Currency</label>
+                <label for="{{ form.currency.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Moneda</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.currency.html_name}}" id="{{form.currency.id_for_label}}" value="{{form.currency.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.currency.errors %}
@@ -196,7 +196,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.payment_Method.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Payment method</label>
+                <label for="{{ form.payment_Method.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Medio de pago</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.payment_method.html_name}}" id="{{form.payment_method.id_for_label}}" value="{{form.payment_method.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.payment_method.errors %}
@@ -207,7 +207,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.bank_account.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Bank account</label>
+                <label for="{{ form.bank_account.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Cuenta bancaria</label>
                 <div class="mt-1 w-2/3">
                     <input type="text" name="{{ form.bank_account.html_name}}" id="{{form.bank_account.id_for_label}}" value="{{form.bank_account.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
                 {% if form.bank_account.errors %}
@@ -218,19 +218,19 @@
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <label for="{{ form.status.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Status</label>
+                <label for="{{ form.status.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Estado</label>
                 <div class="mt-1 w-2/3">
                     <select type="text" name="{{ form.status.html_name}}" id="{{form.status.id_for_label}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
-                        <option value="Active {% if form.status.value == 'Active' %}selected{% endif %}">Active</option>
-                        <option value="Inactive {% if form.status.value == 'Inactive' %}selected{% endif %}">Inactive</option>
+                        <option value="Active {% if form.status.value == 'Active' %}selected{% endif %}">Activo</option>
+                        <option value="Inactive {% if form.status.value == 'Inactive' %}selected{% endif %}">Inactivo</option>
                         <input type="hidden" name="{{ form.created_by_id.html_name }}" value="{{user.username}}">
                     </select>
                 </div>
             </div>
         </div>
         <div class="flex justify-end space-x-4">
-            <a href="{% url 'customers:customers_list' %}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray-400">Cancel</a>
-            <button type="sumit" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-[#1a2c53]">{% if customer %}Edit{% else %}Create{% endif %}</button>
+            <a href="{% url 'customers:customers_list' %}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray-400">Cancelar</a>
+            <button type="submit" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-[#1a2c53]">{% if customer %}Guardar cambios{% else %}Crear{% endif %}</button>
         </div>
     </form>
 </div>

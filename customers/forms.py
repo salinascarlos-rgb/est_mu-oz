@@ -10,6 +10,6 @@ class CustomerForm(forms.ModelForm):
         
 class CsvUploadForm(forms.Form):
     csv_file=forms.FileField(
-        label='Customer CSV File',
+        label='Archivo CSV de clientes',
         help_text='The file must contain headers that match the model fields.'
     )

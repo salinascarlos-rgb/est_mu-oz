@@ -116,7 +116,7 @@ def stock_list(request):
 
     if request.GET.get('export') == 'csv':
         response, writer = csv_response(f'inventory_stock_{selected_date.isoformat()}.csv')
-        writer.writerow(['Location Code', 'Location', 'Material ID', 'Material', 'Unit', 'Stock', 'Reserved', 'Available', 'Average Cost', 'Value', 'Currency', f'Value {base_currency}'])
+        writer.writerow(['Código bodega', 'Bodega', 'ID material', 'Material', 'Unidad', 'Físico', 'Reservado', 'Disponible', 'Costo promedio', 'Valor', 'Moneda', f'Valor {base_currency}'])
         for row in rows:
             writer.writerow([
                 row['id_location__code'], row['id_location__name'],
@@ -182,7 +182,7 @@ def movements_list(request):
 
     if request.GET.get('export') == 'csv':
         response, writer = csv_response('inventory_movements.csv')
-        writer.writerow(['Movement ID', 'Date', 'Type', 'Location', 'Material ID', 'Material', 'Quantity', 'Unit', 'Price', 'Currency', 'Reference', 'User'])
+        writer.writerow(['ID movimiento', 'Fecha', 'Tipo', 'Bodega', 'ID material', 'Material', 'Cantidad', 'Unidad', 'Precio', 'Moneda', 'Referencia', 'Usuario'])
         for mv in movements:
             writer.writerow([
                 mv.id_inventory_movement, mv.created_at.strftime('%Y-%m-%d %H:%M'), mv.movement_type.symbol,
@@ -225,13 +225,13 @@ def create_movement(request):
                 user=request.user,
             )
         except ValueError as e:
-            form.add_error(None, f"Process error: {e}")
+            form.add_error(None, f"Error en el proceso: {e}")
         else:
-            messages.success(request, f"Movement {movement.id_inventory_movement} registered.")
+            messages.success(request, f"Movimiento {movement.id_inventory_movement} registrado.")
             return redirect('inventory:movements_list')
 
     context = {
-        'form': form, 'title': 'New Movement Entry', 'submit_label': 'Create Movement',
+        'form': form, 'title': 'Nuevo movimiento', 'submit_label': 'Registrar movimiento',
         'active_tab': 'create', 'can_edit': True,
         'cost_center_required': ['INT_USE'],
     }
@@ -266,11 +266,11 @@ def transfer_create(request):
         else:
             messages.success(
                 request,
-                f"Transfer registered ({movement_out.id_inventory_movement} / {movement_in.id_inventory_movement})."
+                f"Traslado registrado ({movement_out.id_inventory_movement} / {movement_in.id_inventory_movement})."
             )
             return redirect('inventory:movements_list')
 
-    context = {'form': form, 'title': 'Transfer Between Locations', 'submit_label': 'Register Transfer', 'active_tab': 'transfer', 'can_edit': True}
+    context = {'form': form, 'title': 'Traslado entre bodegas', 'submit_label': 'Registrar traslado', 'active_tab': 'transfer', 'can_edit': True}
     return render(request, 'inventory/movement_form.html', context)
 
 

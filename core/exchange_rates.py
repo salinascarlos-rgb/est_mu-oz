@@ -171,7 +171,7 @@ def require_rate(currency, on_date=None):
     rate = get_rate(currency, on_date)
     if rate is None:
         raise ValueError(
-            f"No exchange rate found for {currency.symbol} against {base_currency_code()}. "
-            f"Run 'python manage.py update_exchange_rates' or add one in the admin (Core > Exchange Rates)."
+            f"No hay tasa de cambio de {currency.symbol} frente a {base_currency_code()}. "
+            f"Ejecute 'python manage.py update_exchange_rates' o agréguela en el admin (Core > Tasas de cambio)."
         )
     return rate

@@ -19,78 +19,91 @@ from sales.models import SalesOrderStatus
 
 
 ORDER_STATUSES = [
-    ('Draft', 'DRAFT'),
-    ('Sent', 'SENT'),
-    ('Confirmed', 'CONFIRMED'),
-    ('Partial Received', 'PARTIAL_RECEIVED'),
-    ('Received', 'RECEIVED'),
-    ('Invoiced', 'INVOICED'),
-    ('Closed', 'CLOSED'),
-    ('Cancelled', 'CANCELLED'),
+    ('Borrador', 'DRAFT'),
+    ('Enviada', 'SENT'),
+    ('Confirmada', 'CONFIRMED'),
+    ('Recibida parcialmente', 'PARTIAL_RECEIVED'),
+    ('Recibida', 'RECEIVED'),
+    ('Facturada', 'INVOICED'),
+    ('Cerrada', 'CLOSED'),
+    ('Cancelada', 'CANCELLED'),
 ]
 
 GOODS_RECEIPT_STATUSES = [
-    ('Partially received', 'PARTIAL_RECEIVED'),
-    ('Completed', 'COMPLETED'),
-    ('Cancelled', 'CANCELLED'),
+    ('Recibida parcialmente', 'PARTIAL_RECEIVED'),
+    ('Completada', 'COMPLETED'),
+    ('Cancelada', 'CANCELLED'),
 ]
 
 SALES_ORDER_STATUSES = [
-    ('Draft', 'DRAFT'),
-    ('Confirmed', 'CONFIRMED'),
-    ('Partially Sent', 'PARTIAL_SENT'),
-    ('Sent', 'SENT'),
-    ('Invoiced', 'INVOICED'),
-    ('Closed', 'CLOSED'),
-    ('Cancelled', 'CANCELLED'),
+    ('Borrador', 'DRAFT'),
+    ('Confirmada', 'CONFIRMED'),
+    ('Despachada parcialmente', 'PARTIAL_SENT'),
+    ('Despachada', 'SENT'),
+    ('Facturada', 'INVOICED'),
+    ('Cerrada', 'CLOSED'),
+    ('Cancelada', 'CANCELLED'),
 ]
 
 INVOICE_STATUSES = [
-    ('Pending', 'PENDING'),
-    ('Paid', 'PAID'),
-    ('Cancelled', 'CANCELLED'),
+    ('Pendiente', 'PENDING'),
+    ('Pagada', 'PAID'),
+    ('Anulada', 'CANCELLED'),
 ]
 
-# (name, symbol, direction): +1 suma al inventario, -1 resta
+# (nombre, símbolo, dirección): +1 suma al inventario, -1 resta
 MOVEMENT_TYPES = [
-    ('Purchase', 'PUR', 1),
-    ('Purchase Return', 'PUR_RET', -1),
-    ('Sale', 'SAL', -1),
-    ('Sales Return', 'SAL_RET', 1),
-    ('Adjustment In', 'ADJ_IN', 1),
-    ('Adjustment Out', 'ADJ_OUT', -1),
-    ('Transfer In', 'TRF_IN', 1),
-    ('Transfer Out', 'TRF_OUT', -1),
-    ('Damage / Loss', 'LOSS', -1),
-    ('Internal Use', 'INT_USE', -1),
+    ('Compra', 'PUR', 1),
+    ('Devolución a proveedor', 'PUR_RET', -1),
+    ('Venta', 'SAL', -1),
+    ('Devolución de cliente', 'SAL_RET', 1),
+    ('Ajuste de entrada', 'ADJ_IN', 1),
+    ('Ajuste de salida', 'ADJ_OUT', -1),
+    ('Traslado (entrada)', 'TRF_IN', 1),
+    ('Traslado (salida)', 'TRF_OUT', -1),
+    ('Daño / pérdida', 'LOSS', -1),
+    ('Uso interno', 'INT_USE', -1),
 ]
 
 ACCOUNT_TYPES = [
-    ('1', 'Asset', 'Resources owned by the company'),
-    ('2', 'Liability', 'Obligations and debts'),
-    ('3', 'Equity', 'Owners capital and retained earnings'),
-    ('4', 'Revenue', 'Income from operations'),
-    ('5', 'Expense', 'Operational expenses'),
+    ('1', 'Activo', 'Recursos de la empresa'),
+    ('2', 'Pasivo', 'Obligaciones y deudas'),
+    ('3', 'Patrimonio', 'Capital y utilidades retenidas'),
+    ('4', 'Ingreso', 'Ingresos de la operación'),
+    ('5', 'Gasto', 'Gastos de la operación'),
 ]
 
 ACCOUNT_GROUPS = [
-    ('1', 'Current Assets', '1', 'Cash, bank, inventory, accounts receivable'),
-    ('2', 'Non-current Assets', '2', 'Property, equipment'),
-    ('3', 'Current Liabilities', '3', 'Accounts payable, taxes payable'),
-    ('4', 'Equity', '4', 'Capital, retained earnings'),
-    ('5', 'Revenue', '5', 'Sales, services'),
-    ('6', 'Expenses', '6', 'COGS, salaries, rent'),
+    ('1', 'Activo corriente', '1', 'Caja, bancos, inventario, cuentas por cobrar'),
+    ('2', 'Activo no corriente', '2', 'Propiedad, planta y equipo'),
+    ('3', 'Pasivo corriente', '3', 'Cuentas por pagar, impuestos por pagar'),
+    ('4', 'Patrimonio', '4', 'Capital, utilidades retenidas'),
+    ('5', 'Ingresos', '5', 'Ventas, servicios'),
+    ('6', 'Gastos', '6', 'Costo de ventas, nómina, arriendo'),
 ]
 
-# (id, code, name, type_id, group_id, nature_id)
+# (id, código, nombre, tipo, grupo, naturaleza)
 ACCOUNTS = [
-    ('1001', '1001', 'Bank', '1', '1', '1'),
-    ('1200', '1200', 'Inventory / Purchases', '1', '1', '1'),
-    ('2200', '2200', 'Accounts Payable', '2', '3', '2'),
-    ('4100', '4100', 'Sales Revenue', '4', '5', '2'),
-    ('6100', '6100', 'Cost of Goods Sold', '5', '6', '1'),
-    ('6020', '6020', 'Internal Use', '5', '6', '1'),
-    ('6590', '6590', 'Inventory Loss', '5', '6', '1'),
+    ('1001', '1001', 'Bancos', '1', '1', '1'),
+    ('1200', '1200', 'Inventario / Compras', '1', '1', '1'),
+    ('2200', '2200', 'Cuentas por pagar', '2', '3', '2'),
+    ('4100', '4100', 'Ingresos por ventas', '4', '5', '2'),
+    ('6100', '6100', 'Costo de ventas', '5', '6', '1'),
+    ('6020', '6020', 'Uso interno', '5', '6', '1'),
+    ('6590', '6590', 'Pérdida de inventario', '5', '6', '1'),
+]
+
+# Unidades y tipos de material (se buscan por símbolo)
+UNITS = [
+    ('Unidad', 'UN'), ('Kilogramo', 'KG'), ('Gramo', 'G'), ('Miligramo', 'MG'), ('Litro', 'LT'),
+    ('Mililitro', 'ML'), ('Metro cúbico', 'M3'), ('Centímetro cúbico', 'CM3'), ('Metro cuadrado', 'M2'),
+    ('Centímetro cuadrado', 'CM2'), ('Bulto', 'BTO'),
+]
+
+MATERIAL_TYPES = [
+    ('Materia prima', 'RM'), ('Mercancía para la venta', 'TG'), ('Producto terminado', 'FG'),
+    ('Producto en proceso', 'SG'), ('Insumos de operación', 'OS'), ('Repuestos', 'SP'),
+    ('Partes no valorizadas', 'NP'), ('Servicios', 'SR'),
 ]
 
 # Centros de costo de ejemplo (se pueden editar en el admin)
@@ -102,12 +115,16 @@ COST_CENTERS = [
 
 
 class Command(BaseCommand):
-    help = 'Loads base catalog data (statuses, currencies, movement types, accounts, roles).'
+    help = 'Carga los datos base (estados, monedas, tipos de movimiento, cuentas, roles).'
 
     def _by_symbol(self, model, rows):
+        """Crea lo que falta y deja el nombre en español en lo que ya existe."""
         created = 0
         for name, symbol in rows:
-            _, was_created = model.objects.get_or_create(symbol=symbol, defaults={'name': name})
+            obj, was_created = model.objects.get_or_create(symbol=symbol, defaults={'name': name})
+            if not was_created and obj.name != name:
+                obj.name = name
+                obj.save(update_fields=['name'])
             created += was_created
         return created
 
@@ -115,8 +132,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         total = 0
 
-        for name, active in [('Active', True), ('Inactive', False)]:
-            total += Status.objects.get_or_create(name=name, defaults={'is_active': active})[1]
+        # Los estados se buscan por is_active para no duplicar si ya existen en inglés
+        for name, active in [('Activo', True), ('Inactivo', False)]:
+            status = Status.objects.filter(is_active=active).order_by('pk').first()
+            if status is None:
+                Status.objects.create(name=name, is_active=active)
+                total += 1
+            elif status.name != name:
+                status.name = name
+                status.save(update_fields=['name'])
 
         cop, c = Currency.objects.get_or_create(symbol='COP', defaults={'name': 'Peso Colombiano'})
         total += c
@@ -125,8 +149,8 @@ class Command(BaseCommand):
         colombia, c = Country.objects.get_or_create(name='Colombia')
         total += c
 
-        total += Unit.objects.get_or_create(symbol='UND', defaults={'name': 'Unidad'})[1]
-        total += MaterialType.objects.get_or_create(symbol='MP', defaults={'name': 'Materia prima'})[1]
+        total += self._by_symbol(Unit, UNITS)
+        total += self._by_symbol(MaterialType, MATERIAL_TYPES)
 
         total += self._by_symbol(OrderStatus, ORDER_STATUSES)
         total += self._by_symbol(GoodsReceiptStatus, GOODS_RECEIPT_STATUSES)
@@ -136,32 +160,37 @@ class Command(BaseCommand):
             movement_type, was_created = MovementType.objects.get_or_create(
                 symbol=symbol, defaults={'name': name, 'direction': direction}
             )
-            if not was_created and movement_type.direction != direction:
+            if not was_created and (movement_type.direction != direction or movement_type.name != name):
                 movement_type.direction = direction
-                movement_type.save(update_fields=['direction'])
+                movement_type.name = name
+                movement_type.save(update_fields=['direction', 'name'])
             total += was_created
 
         for pk, name, symbol, effect in [
-            ('1', 'Debit', 'DR', 'Increases assets and expenses'),
-            ('2', 'Credit', 'CR', 'Increases liabilities, equity and revenue'),
+            ('1', 'Débito', 'DR', 'Aumenta activos y gastos'),
+            ('2', 'Crédito', 'CR', 'Aumenta pasivos, patrimonio e ingresos'),
         ]:
-            total += AccountNature.objects.get_or_create(
+            total += AccountNature.objects.update_or_create(
                 id_account_nature=pk, defaults={'name': name, 'symbol': symbol, 'effect_on_balance': effect}
             )[1]
 
         for pk, name, description in ACCOUNT_TYPES:
-            total += AccountType.objects.get_or_create(
+            total += AccountType.objects.update_or_create(
                 id_account_type=pk, defaults={'name': name, 'description': description}
             )[1]
 
         for pk, name, prefix, description in ACCOUNT_GROUPS:
-            total += AccountGroup.objects.get_or_create(
+            total += AccountGroup.objects.update_or_create(
                 id_account_group=pk, defaults={'name': name, 'code_prefix': prefix, 'description': description}
             )[1]
 
-        active = Status.objects.get(name='Active')
+        active = Status.objects.filter(is_active=True).order_by('pk').first()
         for pk, code, name, type_id, group_id, nature_id in ACCOUNTS:
-            if AccountAccount.objects.filter(code=code).exists():
+            existing = AccountAccount.objects.filter(code=code).first()
+            if existing:
+                if existing.name != name:
+                    existing.name = name
+                    existing.save(update_fields=['name'])
                 continue
             AccountAccount.objects.create(
                 id_account=pk,
@@ -181,10 +210,13 @@ class Command(BaseCommand):
                 id_cost_center=pk, defaults={'name': name, 'description': description, 'status': active}
             )[1]
 
-        total += Role.objects.get_or_create(
-            role_name='Administrator',
-            defaults={m: 2 for m in ['customers', 'suppliers', 'materials', 'purchases',
-                                     'sales', 'inventory', 'accounting', 'reporting']},
-        )[1]
+        # role_name es la llave primaria: no se renombra 'Administrator' si ya
+        # existe (rompería los usuarios asignados); solo se crea en bases nuevas
+        if not Role.objects.filter(role_name='Administrator').exists():
+            total += Role.objects.get_or_create(
+                role_name='Administrador',
+                defaults={m: 2 for m in ['customers', 'suppliers', 'materials', 'purchases',
+                                         'sales', 'inventory', 'accounting', 'reporting']},
+            )[1]
 
-        self.stdout.write(self.style.SUCCESS(f'Base data loaded. New records created: {total}.'))
+        self.stdout.write(self.style.SUCCESS(f'Datos base cargados. Registros nuevos: {total}.'))

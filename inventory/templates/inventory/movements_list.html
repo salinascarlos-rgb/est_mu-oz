@@ -1,7 +1,7 @@
 {% extends "core/base.html" %}
 {% load humanize %}
 
-{% block title %}Inventory - Movements{% endblock %}
+{% block title %}Inventario - Movimientos{% endblock %}
 
 {% block content %}
 {% include "inventory/_header.html" %}
@@ -9,39 +9,39 @@
 <div class="mb-6 p-4 border rounded-lg bg-gray-50">
     <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
         <div>
-            <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+            <label for="location" class="block text-sm font-medium text-gray-700">Bodega</label>
             <select name="location" id="location" class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 bg-white">
-                <option value="">All</option>
+                <option value="">Todos</option>
                 {% for loc in locations %}
                 <option value="{{ loc.pk }}" {% if request.GET.location == loc.pk|stringformat:"s" %}selected{% endif %}>{{ loc.code }} - {{ loc.name }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label for="material" class="block text-sm font-medium text-gray-700">Material (ID or name)</label>
+            <label for="material" class="block text-sm font-medium text-gray-700">Material (ID o nombre)</label>
             <input type="text" name="material" id="material" value="{{ request.GET.material }}" class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300">
         </div>
         <div>
-            <label for="movement_type" class="block text-sm font-medium text-gray-700">Type</label>
+            <label for="movement_type" class="block text-sm font-medium text-gray-700">Tipo</label>
             <select name="movement_type" id="movement_type" class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 bg-white">
-                <option value="">All</option>
+                <option value="">Todos</option>
                 {% for mt in movement_types %}
                 <option value="{{ mt.symbol }}" {% if request.GET.movement_type == mt.symbol %}selected{% endif %}>{{ mt.symbol }} - {{ mt.name }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label for="date_from" class="block text-sm font-medium text-gray-700">From</label>
+            <label for="date_from" class="block text-sm font-medium text-gray-700">Desde</label>
             <input type="date" name="date_from" id="date_from" value="{{ request.GET.date_from }}" class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300">
         </div>
         <div>
-            <label for="date_to" class="block text-sm font-medium text-gray-700">To</label>
+            <label for="date_to" class="block text-sm font-medium text-gray-700">Hasta</label>
             <input type="date" name="date_to" id="date_to" value="{{ request.GET.date_to }}" class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300">
         </div>
         <div class="md:col-span-5 flex flex-wrap gap-2">
-            <button type="submit" class="bg-[#233b6e] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#1a2c53] transition-colors duration-300">Filter</button>
-            <a href="{% url 'inventory:movements_list' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-300">Clear</a>
-            <a href="{% querystring export='csv' page=None %}" class="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-300">Export CSV</a>
+            <button type="submit" class="bg-[#233b6e] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#1a2c53] transition-colors duration-300">Filtrar</button>
+            <a href="{% url 'inventory:movements_list' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-300">Limpiar</a>
+            <a href="{% querystring export='csv' page=None %}" class="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-300">Exportar CSV</a>
         </div>
     </form>
 </div>
@@ -50,14 +50,14 @@
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
             <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bodega</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material</th>
-                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Cant.</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Referencia</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
             </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
@@ -76,7 +76,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="8" class="px-6 py-8 text-center text-sm text-gray-500">No movements found.</td>
+                <td colspan="8" class="px-6 py-8 text-center text-sm text-gray-500">No se encontraron movimientos.</td>
             </tr>
             {% endfor %}
         </tbody>

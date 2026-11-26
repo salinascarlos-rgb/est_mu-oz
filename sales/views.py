@@ -58,7 +58,7 @@ def sales_order_list(request):
         response['Content-Disposition'] = 'attachment; filename="sales_orders.csv"'
         response.write('﻿'.encode('utf-8'))
         writer = csv.writer(response)
-        writer.writerow(['ID SO', 'Customer ID', 'Customer', 'Issue Date', 'Est. Delivery', 'Status', 'Total', 'Created By'])
+        writer.writerow(['ID OV', 'ID cliente', 'Cliente', 'Fecha de emisión', 'Entrega estimada', 'Estado', 'Total', 'Creado por'])
         for so in orders:
             writer.writerow([
                 so.id_sales_order, so.id_customer.id_customer, so.id_customer.name,
@@ -93,7 +93,7 @@ def sales_order_detail(request, pk):
 def get_customer_details(request, customer_id):
 
     if get_sales_permission(request.user) == 0:
-        return json_error('You do not have permission.', status=403)
+        return json_error('No tiene permiso.', status=403)
 
     customer = get_object_or_404(Customer, id_customer=customer_id)
     currency = services.currency_for_customer(customer)
@@ -112,7 +112,7 @@ def get_stock_data(request):
     """Disponible, costo promedio y unidad de un material en una bodega."""
 
     if get_sales_permission(request.user) == 0:
-        return json_error('You do not have permission.', status=403)
+        return json_error('No tiene permiso.', status=403)
 
     material = Material.objects.filter(pk=request.GET.get('material_id')).select_related('unit').first()
     location = LocationInventory.objects.filter(pk=request.GET.get('location_id')).first()
@@ -137,9 +137,9 @@ def sales_order_form(request):
 
     max_permission = get_sales_permission(request.user)
     if max_permission == 0:
-        return redirect('dashboard') if request.method == 'GET' else json_error('You do not have permission.', 403)
+        return redirect('dashboard') if request.method == 'GET' else json_error('No tiene permiso.', 403)
     if max_permission < 2:
-        return redirect('sales:sales_order_list') if request.method == 'GET' else json_error('You do not have permission.', 403)
+        return redirect('sales:sales_order_list') if request.method == 'GET' else json_error('No tiene permiso.', 403)
 
     if request.method == 'POST':
         try:
@@ -149,29 +149,29 @@ def sales_order_form(request):
             lines_data = data.get('lines', [])
 
             if not customer_id or not est_delivery or not lines_data:
-                return json_error('Missing required fields (customer, delivery date or lines).')
+                return json_error('Faltan datos obligatorios (cliente, fecha de entrega o líneas).')
 
             customer = Customer.objects.filter(id_customer=customer_id).first()
             if customer is None:
-                return json_error(f"Customer '{customer_id}' not found.")
+                return json_error(f"No existe el cliente '{customer_id}'.")
             try:
                 est_delivery_date = date.fromisoformat(est_delivery)
             except ValueError:
-                return json_error('Invalid delivery date.')
+                return json_error('Fecha de entrega inválida.')
             if est_delivery_date < date.today():
-                return json_error('The delivery date cannot be in the past.')
+                return json_error('La fecha de entrega no puede ser anterior a hoy.')
 
             lines = []
             for i, line in enumerate(lines_data, start=1):
                 material = Material.objects.filter(pk=line.get('material_id')).select_related('unit').first()
                 location = LocationInventory.objects.filter(pk=line.get('location_id')).first()
                 if material is None or location is None:
-                    return json_error(f"Line {i}: select a material and a location.")
+                    return json_error(f"Línea {i}: seleccione material y bodega.")
                 try:
                     quantity = int(float(line.get('quantity')))
                     price = float(line.get('price'))
                 except (TypeError, ValueError):
-                    return json_error(f"Line {i}: invalid quantity or price.")
+                    return json_error(f"Línea {i}: cantidad o precio inválido.")
                 lines.append({'material': material, 'location': location, 'quantity': quantity, 'price': price})
 
             order = services.create_sales_order(
@@ -180,7 +180,7 @@ def sales_order_form(request):
             return JsonResponse({
                 'success': True,
                 'id': order.id_sales_order,
-                'message': f"Order {order.id_sales_order} created and stock reserved.",
+                'message': f"Orden {order.id_sales_order} creada y existencias reservadas.",
                 'redirect_url': reverse('sales:sales_order_detail', kwargs={'pk': order.pk}),
             }, status=201)
 
@@ -188,11 +188,11 @@ def sales_order_form(request):
             return json_error(str(e))
         except Exception as e:
             logger.exception("Error in sales_order_create")
-            return json_error(f'Unexpected error: {e}', status=500)
+            return json_error(f'Error inesperado: {e}', status=500)
 
     context = {
         'materials': active_materials().select_related('unit'),
         'locations': active_locations(),
-        'title': 'Create New Sales Order',
+        'title': 'Crear orden de venta',
     }
     return render(request, 'sales/sales_order_form.html', context)

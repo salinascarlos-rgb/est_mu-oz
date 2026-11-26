@@ -93,27 +93,27 @@ def create_sales_order(*, customer, estimated_delivery_date, lines, user):
     (el curso validaba cada línea por separado y se podía vender de más).
     """
     if not lines:
-        raise ValueError("The order must have at least one line.")
+        raise ValueError("La orden debe tener al menos una línea.")
 
     try:
         status = SalesOrderStatus.objects.get(symbol=INITIAL_STATUS)
     except SalesOrderStatus.DoesNotExist:
-        raise ValueError("Sales order statuses not found. Run 'python manage.py seed_data'.")
+        raise ValueError("No existen los estados de venta. Ejecute 'python manage.py seed_data'.")
 
     requested = defaultdict(int)
     for i, line in enumerate(lines, start=1):
         if line['quantity'] <= 0:
-            raise ValueError(f"Line {i}: quantity must be greater than zero.")
+            raise ValueError(f"Línea {i}: la cantidad debe ser mayor que cero.")
         if line['price'] <= 0:
-            raise ValueError(f"Line {i}: price must be greater than zero.")
+            raise ValueError(f"Línea {i}: el precio debe ser mayor que cero.")
         requested[(line['material'], line['location'])] += line['quantity']
 
     for (material, location), quantity in requested.items():
         available = available_quantity(material, location)
         if quantity > available:
             raise ValueError(
-                f"Not enough stock of {material.id_material} in {location.code}. "
-                f"Available: {available}, requested: {quantity}."
+                f"No hay suficiente existencia de {material.id_material} en {location.code}. "
+                f"Disponible: {available}, solicitado: {quantity}."
             )
 
     order = SalesOrder.objects.create(
