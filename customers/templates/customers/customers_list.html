@@ -10,22 +10,22 @@
     <form method="get" action="{% url 'customers:customers_list' %}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         <div class="col-span-1">
             <label for="id_customer" class="block text-sm font-medium text-gray-700">ID cliente</label>
-            <input type="text" name="id_customer" id="id_customer" value="{{request.GET.id_customer}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring-indigo-200 focus:ring-opacity-50">
+            <input type="text" name="id_customer" id="id_customer" value="{{request.GET.id_customer}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#00CD57] focus:ring-[#00CD57] focus:ring-opacity-50">
         </div>
         <div class="col-span-1">
             <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
-            <input type="text" name="name" id="name" value="{{request.GET.name}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring-indigo-200 focus:ring-opacity-50">
+            <input type="text" name="name" id="name" value="{{request.GET.name}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#00CD57] focus:ring-[#00CD57] focus:ring-opacity-50">
         </div>
         <div class="col-span-1">
             <label for="country" class="block text-sm font-medium text-gray-700">País</label>
-            <input type="text" name="country" id="country" value="{{request.GET.country}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring-indigo-200 focus:ring-opacity-50">
+            <input type="text" name="country" id="country" value="{{request.GET.country}}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#00CD57] focus:ring-[#00CD57] focus:ring-opacity-50">
         </div>
         <div class="col-span-1">
             <label for="status" class="block text-sm font-medium text-gray-700">Estado</label>
-            <select name="status" id="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring-indigo-200 focus:ring-opacity-50">
+            <select name="status" id="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#00CD57] focus:ring-[#00CD57] focus:ring-opacity-50">
             <option value="" {% if not request.GET.status %}selected{% endif %}>Todos</option>
-            <option value="Active" {% if not request.GET.status == "Active" %}selected{% endif %}>Activo</option>
-            <option value="Inactive" {% if not request.GET.status == "Inactive" %}selected{% endif %}>Inactivo</option>
+            <option value="Active" {% if request.GET.status == "Active" %}selected{% endif %}>Activo</option>
+            <option value="Inactive" {% if request.GET.status == "Inactive" %}selected{% endif %}>Inactivo</option>
             </select>
         </div>
         
@@ -33,21 +33,21 @@
 <div class="col-span-1 md:col-span-4">
     <div class="flex items-center justify-between">
         <div class="flex space-x-2">
-            <button type="summit" class="w-full md:w-auto bg-[#233b6e] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#1a2c53] transition-colors duration-300">Filtrar</button>
+            <button type="summit" class="w-full md:w-auto bg-[#00843D] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#006B31] transition-colors duration-300">Filtrar</button>
             <a href="{% url 'customers:customers_list' %}" class="w-full md:w-auto bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-300 text-center">Limpiar</a>
         </div>
         <div class="flex items-center space-x-2 mt-4 md:mt-0">
-            <a href="?export=csv{% for key,value in request.GET.items %}{% if key != 'page'%}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="bg-green-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-green-700">
+            <a href="?export=csv{% for key,value in request.GET.items %}{% if key != 'page'%}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="bg-[#00843D] text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-[#006B31]">
                 Exportar a CSV
             </a>
         </div>
         <div class="flex justify-end mb-4">
-            <a href="{% url 'customers:customer_bulk_create' %}" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md shadow-md hover:bg-indigo-700 transition duration-300">
+            <a href="{% url 'customers:customer_bulk_create' %}" class="bg-[#005C2A] text-white font-semibold py-2 px-4 rounded-md shadow-md hover:bg-[#004D23] transition duration-300">
                 Carga masiva (CSV)
             </a>
         </div>
         {% if permissions.customers >= 2 %}
-        <a href="{% url 'customers:customer_create' %}" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg text-center transition-colors duration-300 hover:bg-[#1a2c53]">Crear cliente</a>
+        <a href="{% url 'customers:customer_create' %}" class="bg-[#00843D] text-white font-semibold py-2 px-6 rounded-lg text-center transition-colors duration-300 hover:bg-[#006B31]">Crear cliente</a>
         {% endif %}
     </div>
 </div>
@@ -78,13 +78,13 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{customer.category}}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if customer.status == 'Active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
-                        {{customer.status}}
+                        {% if customer.status == 'Active' %}Activo{% elif customer.status == 'Inactive' %}Inactivo{% else %}{{ customer.status }}{% endif %}
                     </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{customer.created_by.username}}></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{customer.created_by.username}}</td>
                 {% if permissions.customers >= 2 %}
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <a href="{% url 'customers:customer_edit' customer.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-4">Editar</a>
+                    <a href="{% url 'customers:customer_edit' customer.pk %}" class="text-[#00843D] hover:text-[#005C2A] mr-4">Editar</a>
                     <form action="{% url 'customers:customer_delete' customer.pk %}" method="post" class="inline-block">
                         {% csrf_token %}
                         <button type="submit" class="text-red-600 hover:text-red-900 transition-colors duration-300" title="Eliminar" onclick="return confirm('¿Seguro que quieres eliminar este cliente?')">

@@ -39,9 +39,9 @@
             <input type="date" name="date_to" id="date_to" value="{{ request.GET.date_to }}" class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300">
         </div>
         <div class="md:col-span-5 flex flex-wrap gap-2">
-            <button type="submit" class="bg-[#233b6e] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#1a2c53] transition-colors duration-300">Filtrar</button>
+            <button type="submit" class="bg-[#00843D] text-white px-4 py-2 rounded-lg shadow-md hover:bg-[#006B31] transition-colors duration-300">Filtrar</button>
             <a href="{% url 'inventory:movements_list' %}" class="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-300">Limpiar</a>
-            <a href="{% querystring export='csv' page=None %}" class="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-300">Exportar CSV</a>
+            <a href="{% querystring export='csv' page=None %}" class="bg-[#00843D] text-white font-semibold px-4 py-2 rounded-lg hover:bg-[#006B31] transition-colors duration-300">Exportar CSV</a>
         </div>
     </form>
 </div>

@@ -22,7 +22,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.id_customer.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">ID cliente</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.id_customer.html_name}}" id="{{form.id_customer.id_for_label}}" value="{{form.id_customer.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.id_customer.html_name}}" id="{{form.id_customer.id_for_label}}" value="{{form.id_customer.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.id_customer.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.id_customer.errors }}
@@ -33,7 +33,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.legal_name.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Razón social</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.legal_name.html_name}}" id="{{form.legal_name.id_for_label}}" value="{{form.legal_name.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.legal_name.html_name}}" id="{{form.legal_name.id_for_label}}" value="{{form.legal_name.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.legal_name.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.legal_name.errors }}
@@ -44,7 +44,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.name.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Nombre</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.name.html_name}}" id="{{form.name.id_for_label}}" value="{{form.name.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.name.html_name}}" id="{{form.name.id_for_label}}" value="{{form.name.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.name.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.name.errors }}
@@ -55,7 +55,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.tax_id.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">NIT</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.tax_id.html_name}}" id="{{form.tax_id.id_for_label}}" value="{{form.tax_id.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.tax_id.html_name}}" id="{{form.tax_id.id_for_label}}" value="{{form.tax_id.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.tax_id.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.tax_id.errors }}
@@ -66,7 +66,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.country.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">País</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.country.html_name}}" id="{{form.country.id_for_label}}" value="{{form.country.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.country.html_name}}" id="{{form.country.id_for_label}}" value="{{form.country.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.country.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.country.errors }}
@@ -77,7 +77,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.state_province.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Departamento</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.state_province.html_name}}" id="{{form.state_province.id_for_label}}" value="{{form.state_province.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.state_province.html_name}}" id="{{form.state_province.id_for_label}}" value="{{form.state_province.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.state_province.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.state_province.errors }}
@@ -88,7 +88,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.city.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Ciudad</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.city.html_name}}" id="{{form.city.id_for_label}}" value="{{form.city.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.city.html_name}}" id="{{form.city.id_for_label}}" value="{{form.city.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.city.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.city.errors }}
@@ -99,7 +99,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.address.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Dirección</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.address.html_name}}" id="{{form.address.id_for_label}}" value="{{form.address.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.address.html_name}}" id="{{form.address.id_for_label}}" value="{{form.address.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.address.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.address.errors }}
@@ -110,7 +110,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.zip_code.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Código postal</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.zip_code.html_name}}" id="{{form.zip_code.id_for_label}}" value="{{form.zip_code.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.zip_code.html_name}}" id="{{form.zip_code.id_for_label}}" value="{{form.zip_code.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.zip_code.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.zip_code.errors }}
@@ -121,7 +121,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.phone.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Teléfono</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.phone.html_name}}" id="{{form.phone.id_for_label}}" value="{{form.phone.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.phone.html_name}}" id="{{form.phone.id_for_label}}" value="{{form.phone.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.phone.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.phone.errors }}
@@ -132,7 +132,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.email.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Correo</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.email.html_name}}" id="{{form.email.id_for_label}}" value="{{form.email.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.email.html_name}}" id="{{form.email.id_for_label}}" value="{{form.email.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.email.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.email.errors }}
@@ -143,7 +143,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.contact_name.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Nombre de contacto</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.contact_name.html_name}}" id="{{form.contact_name.id_for_label}}" value="{{form.contact_name.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.contact_name.html_name}}" id="{{form.contact_name.id_for_label}}" value="{{form.contact_name.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.contact_name.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.contact_name.errors }}
@@ -154,7 +154,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.contact_role.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Cargo del contacto</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.contact_role.html_name}}" id="{{form.contact_role.id_for_label}}" value="{{form.contact_role.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.contact_role.html_name}}" id="{{form.contact_role.id_for_label}}" value="{{form.contact_role.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.contact_role.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.contact_role.errors }}
@@ -165,7 +165,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.category.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Categoría</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.category.html_name}}" id="{{form.category.id_for_label}}" value="{{form.category.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.category.html_name}}" id="{{form.category.id_for_label}}" value="{{form.category.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.category.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.category.errors }}
@@ -176,7 +176,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.payment_terms.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Plazo de pago</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.payment_terms.html_name}}" id="{{form.payment_terms.id_for_label}}" value="{{form.payment_terms.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.payment_terms.html_name}}" id="{{form.payment_terms.id_for_label}}" value="{{form.payment_terms.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.payment_terms.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.payment_terms.errors }}
@@ -187,7 +187,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.currency.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Moneda</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.currency.html_name}}" id="{{form.currency.id_for_label}}" value="{{form.currency.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.currency.html_name}}" id="{{form.currency.id_for_label}}" value="{{form.currency.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.currency.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.currency.errors }}
@@ -198,7 +198,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.payment_Method.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Medio de pago</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.payment_method.html_name}}" id="{{form.payment_method.id_for_label}}" value="{{form.payment_method.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.payment_method.html_name}}" id="{{form.payment_method.id_for_label}}" value="{{form.payment_method.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.payment_method.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.payment_method.errors }}
@@ -209,7 +209,7 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.bank_account.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Cuenta bancaria</label>
                 <div class="mt-1 w-2/3">
-                    <input type="text" name="{{ form.bank_account.html_name}}" id="{{form.bank_account.id_for_label}}" value="{{form.bank_account.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
+                    <input type="text" name="{{ form.bank_account.html_name}}" id="{{form.bank_account.id_for_label}}" value="{{form.bank_account.value|default:''}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
                 {% if form.bank_account.errors %}
                 <div class="bg-red-100 border-1-4 border-red-500 text-red-700 p-2 nt-1 rounded text-sm">
                     {{ form.bank_account.errors }}
@@ -220,9 +220,9 @@
             <div class="flex items-center space-x-4">
                 <label for="{{ form.status.id_for_label}}" class="block text-sm font-medium text-gray-700 w-1/3">Estado</label>
                 <div class="mt-1 w-2/3">
-                    <select type="text" name="{{ form.status.html_name}}" id="{{form.status.id_for_label}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#233b6e]">
-                        <option value="Active {% if form.status.value == 'Active' %}selected{% endif %}">Activo</option>
-                        <option value="Inactive {% if form.status.value == 'Inactive' %}selected{% endif %}">Inactivo</option>
+                    <select type="text" name="{{ form.status.html_name}}" id="{{form.status.id_for_label}}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus: outline-none focus:ring-2 focus:ring-[#00843D]">
+                        <option value="Active" {% if form.status.value == 'Active' %}selected{% endif %}>Activo</option>
+                        <option value="Inactive" {% if form.status.value == 'Inactive' %}selected{% endif %}>Inactivo</option>
                         <input type="hidden" name="{{ form.created_by_id.html_name }}" value="{{user.username}}">
                     </select>
                 </div>
@@ -230,7 +230,7 @@
         </div>
         <div class="flex justify-end space-x-4">
             <a href="{% url 'customers:customers_list' %}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray-400">Cancelar</a>
-            <button type="submit" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-[#1a2c53]">{% if customer %}Guardar cambios{% else %}Crear{% endif %}</button>
+            <button type="submit" class="bg-[#00843D] text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-[#006B31]">{% if customer %}Guardar cambios{% else %}Crear{% endif %}</button>
         </div>
     </form>
 </div>
