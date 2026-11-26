@@ -7,12 +7,13 @@ from django.core.paginator import Paginator
 from django.db.models import Max, Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+from django.utils import timezone
 
 from core.models import Currency
 from core.exchange_rates import base_currency_code
 from users.models import UserRole
-from .forms import AdjustmentForm, TransferForm, active_locations
-from .models import InventoryMovements, MovementType
+from .forms import InventoryMovementForm, TransferForm, active_locations
+from .models import InventoryMovements, MovementType, Stock
 from . import services
 
 
@@ -57,34 +58,65 @@ def stock_list(request):
             Q(id_material__id_material__icontains=material) | Q(id_material__name__icontains=material)
         )
 
-    rows = services.stock_by_location(movements)
-    if not show_zero:
-        rows = rows.exclude(stock=0)
+    # Filtro por fecha (video 17): hoy = existencias en vivo; fecha pasada = foto diaria
+    today = timezone.localdate()
+    selected_date = parse_date(request.GET.get('date')) or today
+    if selected_date > today:
+        selected_date = today
+    is_snapshot = selected_date < today
 
-    rows = list(rows)
-    costs = services.average_costs({row['id_material'] for row in rows})
-    base_values, snapshot_date = services.latest_stock_values()
-    total_value = 0
-    total_value_base = 0
-    for row in rows:
-        row['avg_cost'] = costs.get(row['id_material'], 0)
-        row['value'] = row['stock'] * row['avg_cost']
-        row['value_base'] = base_values.get((row['id_material'], row['id_location']))
-        total_value += row['value']
-        total_value_base += row['value_base'] or 0
+    if is_snapshot:
+        snapshot = Stock.objects.filter(date=selected_date).select_related('id_location', 'id_material', 'unit_type')
+        if location:
+            snapshot = snapshot.filter(id_location__pk=location)
+        if material:
+            snapshot = snapshot.filter(
+                Q(id_material__id_material__icontains=material) | Q(id_material__name__icontains=material)
+            )
+        if not show_zero:
+            snapshot = snapshot.exclude(quantity=0)
+        rows = [{
+            'id_location': s.id_location_id, 'id_location__code': s.id_location.code, 'id_location__name': s.id_location.name,
+            'id_material': s.id_material_id, 'id_material__id_material': s.id_material.id_material,
+            'id_material__name': s.id_material.name,
+            'id_material__unit__symbol': s.unit_type.symbol if s.unit_type else '',
+            'stock': s.quantity, 'avg_cost': None, 'value': None, 'value_base': s.total_value_usd,
+        } for s in snapshot.order_by('id_location__code', 'id_material__id_material')]
+        total_value = None
+        total_value_base = sum((row['value_base'] for row in rows), 0)
+        snapshot_date = selected_date
+    else:
+        rows = services.stock_by_location(movements)
+        if not show_zero:
+            rows = rows.exclude(stock=0)
+
+        rows = list(rows)
+        costs = services.average_costs({row['id_material'] for row in rows})
+        base_values, snapshot_date = services.latest_stock_values()
+        total_value = 0
+        total_value_base = 0
+        for row in rows:
+            row['avg_cost'] = costs.get(row['id_material'], 0)
+            row['value'] = row['stock'] * row['avg_cost']
+            row['value_base'] = base_values.get((row['id_material'], row['id_location']))
+            total_value += row['value']
+            total_value_base += row['value_base'] or 0
 
     currency = Currency.objects.order_by('pk').first()
     currency_symbol = currency.symbol if currency else ''
     base_currency = base_currency_code()
 
     if request.GET.get('export') == 'csv':
-        response, writer = csv_response('inventory_stock.csv')
+        response, writer = csv_response(f'inventory_stock_{selected_date.isoformat()}.csv')
         writer.writerow(['Location Code', 'Location', 'Material ID', 'Material', 'Unit', 'Stock', 'Average Cost', 'Value', 'Currency', f'Value {base_currency}'])
         for row in rows:
             writer.writerow([
                 row['id_location__code'], row['id_location__name'],
                 row['id_material__id_material'], row['id_material__name'], row['id_material__unit__symbol'],
-                row['stock'], round(row['avg_cost'], 2), round(row['value'], 2), currency_symbol,
+                row['stock'],
+                round(row['avg_cost'], 2) if row['avg_cost'] is not None else '',
+                round(row['value'], 2) if row['value'] is not None else '',
+                currency_symbol if row['value'] is not None else '',
                 round(row['value_base'], 2) if row['value_base'] is not None else '',
             ])
         return response
@@ -98,6 +130,9 @@ def stock_list(request):
         'total_value_base': total_value_base,
         'base_currency': base_currency,
         'snapshot_date': snapshot_date,
+        'selected_date': selected_date,
+        'is_snapshot': is_snapshot,
+        'today': today,
         'total_rows': len(rows),
         'currency_symbol': currency_symbol,
         'show_zero': show_zero,
@@ -163,7 +198,8 @@ def movements_list(request):
 
 
 @login_required
-def adjustment_create(request):
+def create_movement(request):
+    """New Movement Entry (video 17): pérdida, uso interno y ajustes."""
 
     max_permission = get_inventory_permission(request.user)
     if max_permission == 0:
@@ -171,22 +207,33 @@ def adjustment_create(request):
     if max_permission < 2:
         return redirect('inventory:stock_list')
 
-    form = AdjustmentForm(request.POST or None)
+    form = InventoryMovementForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         data = form.cleaned_data
         try:
-            movement = services.register_adjustment(
-                material=data['material'], location=data['location'], quantity=data['quantity'],
-                direction=data['direction'], reason=data['reason'], user=request.user,
+            movement = services.register_movement(
+                material=data['material'], location=data['location'], movement_type=data['movement_type'],
+                quantity=data['quantity'], cost_center=data['cost_center'], description=data['description'],
+                user=request.user,
             )
         except ValueError as e:
-            form.add_error(None, str(e))
+            form.add_error(None, f"Process error: {e}")
         else:
-            messages.success(request, f"Adjustment {movement.id_inventory_movement} registered.")
+            messages.success(request, f"Movement {movement.id_inventory_movement} registered.")
             return redirect('inventory:movements_list')
 
-    context = {'form': form, 'title': 'Inventory Adjustment', 'submit_label': 'Register Adjustment', 'active_tab': 'adjustment', 'can_edit': True}
+    context = {
+        'form': form, 'title': 'New Movement Entry', 'submit_label': 'Create Movement',
+        'active_tab': 'create', 'can_edit': True,
+        'cost_center_required': ['INT_USE'],
+    }
     return render(request, 'inventory/movement_form.html', context)
+
+
+@login_required
+def adjustment_create(request):
+    """Ruta antigua: los ajustes ahora están en New Movement."""
+    return redirect('inventory:create_movement')
 
 
 @login_required

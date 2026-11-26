@@ -7,7 +7,11 @@
 {% include "inventory/_header.html" %}
 
 <div class="mb-6 p-4 border rounded-lg bg-gray-50">
-    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+        <div>
+            <label for="date" class="block text-sm font-medium text-gray-700">Date</label>
+            <input type="date" name="date" id="date" value="{{ selected_date|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}" class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300">
+        </div>
         <div>
             <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
             <select name="location" id="location" class="mt-1 block w-full px-3 py-2 rounded-md border border-gray-300 bg-white">
@@ -35,6 +39,12 @@
     </form>
 </div>
 
+{% if is_snapshot %}
+<div class="mb-4 p-3 rounded-lg bg-blue-100 text-blue-800 text-sm">
+    Showing the daily snapshot of {{ selected_date|date:"Y-m-d" }}, valued in {{ base_currency }}. Values in {{ currency_symbol }} are only available for today.
+</div>
+{% endif %}
+
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
     <div class="bg-white p-4 rounded-lg shadow-md">
         <p class="text-sm text-gray-500">Rows</p>
@@ -42,7 +52,7 @@
     </div>
     <div class="bg-white p-4 rounded-lg shadow-md">
         <p class="text-sm text-gray-500">Inventory value (average cost)</p>
-        <p class="text-2xl font-bold text-gray-800">{{ currency_symbol }} {{ total_value|floatformat:0|intcomma }}</p>
+        <p class="text-2xl font-bold text-gray-800">{% if total_value is not None %}{{ currency_symbol }} {{ total_value|floatformat:0|intcomma }}{% else %}—{% endif %}</p>
     </div>
     <div class="bg-white p-4 rounded-lg shadow-md">
         <p class="text-sm text-gray-500">Value in {{ base_currency }}{% if snapshot_date %} (snapshot {{ snapshot_date|date:"Y-m-d" }}){% endif %}</p>
@@ -72,8 +82,8 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ row.id_material__name }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold {% if row.stock <= 0 %}text-red-600{% else %}text-gray-900{% endif %}">{{ row.stock|intcomma }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ row.id_material__unit__symbol }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">{{ row.avg_cost|floatformat:2|intcomma }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{{ row.value|floatformat:0|intcomma }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">{% if row.avg_cost is not None %}{{ row.avg_cost|floatformat:2|intcomma }}{% else %}—{% endif %}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{% if row.value is not None %}{{ row.value|floatformat:0|intcomma }}{% else %}—{% endif %}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">{% if row.value_base is not None %}{{ row.value_base|floatformat:2|intcomma }}{% else %}—{% endif %}</td>
             </tr>
             {% empty %}

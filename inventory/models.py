@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.db import models
 from django.conf import settings
 from core.models import Status, Currency
+from accounting.models import CostCenter
 from materials.models import Material,Unit
 
 class MovementType(models.Model):
@@ -67,6 +68,8 @@ class InventoryMovements(models.Model):
 
     movement_type = models.ForeignKey(MovementType, on_delete=models.PROTECT, verbose_name="Movement ID")
     reference = models.CharField(verbose_name="Reference", max_length=100, blank=True, default='')
+    cost_center = models.ForeignKey(CostCenter, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Cost Center")
+    description = models.TextField(verbose_name="Description", blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -89,6 +92,7 @@ class Stock(models.Model):
     id_material = models.ForeignKey(Material, on_delete=models.CASCADE, verbose_name="Material")
     date = models.DateField(verbose_name='Date', default=date.today)
     quantity = models.IntegerField(verbose_name="Quantity", default=0)
+    unit_type = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Unit Type")
 
     avg_price_usd = models.DecimalField(max_digits=18, decimal_places=6, default=Decimal('0'), verbose_name="Average Price (base)")
     total_value_usd = models.DecimalField(max_digits=20, decimal_places=4, default=Decimal('0'), verbose_name="Total Value (base)")

@@ -5,7 +5,7 @@
     <a href="{% url 'inventory:stock_list' %}" class="{{ base }} {% if active_tab == 'stock' %}{{ on }}{% else %}{{ off }}{% endif %}">Stock</a>
     <a href="{% url 'inventory:movements_list' %}" class="{{ base }} {% if active_tab == 'movements' %}{{ on }}{% else %}{{ off }}{% endif %}">Movements</a>
     {% if can_edit %}
-    <a href="{% url 'inventory:adjustment_create' %}" class="{{ base }} {% if active_tab == 'adjustment' %}{{ on }}{% else %}{{ off }}{% endif %}">Adjustment</a>
+    <a href="{% url 'inventory:create_movement' %}" class="{{ base }} {% if active_tab == 'create' %}{{ on }}{% else %}{{ off }}{% endif %}">New Movement</a>
     <a href="{% url 'inventory:transfer_create' %}" class="{{ base }} {% if active_tab == 'transfer' %}{{ on }}{% else %}{{ off }}{% endif %}">Transfer</a>
     {% endif %}
     {% endwith %}

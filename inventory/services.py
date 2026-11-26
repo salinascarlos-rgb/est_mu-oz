@@ -120,22 +120,85 @@ def _check_stock(material, location, quantity):
         )
 
 
+# Tipos de movimiento que se registran desde "New Movement" (video 17)
+LOSS = 'LOSS'
+INTERNAL_USE = 'INT_USE'
+MANUAL_MOVEMENT_TYPES = [LOSS, INTERNAL_USE, ADJUSTMENT_IN, ADJUSTMENT_OUT]
+
+# Asiento automático por tipo: (cuenta débito, texto). El crédito va a inventario.
+ACCOUNTING_MAP = {
+    INTERNAL_USE: ('6020', 'Internal Use'),
+    LOSS: ('6590', 'Inventory Loss'),
+}
+INVENTORY_ACCOUNT_CODE = '1200'
+COST_CENTER_REQUIRED = {INTERNAL_USE}
+
+
+def post_inventory_journal(movement, user):
+    """
+    Asiento contable de una salida de inventario (video 17):
+        Débito  6020 Uso interno  /  6590 Pérdida de inventario
+        Crédito 1200 Inventario
+    Se registra en la moneda del movimiento (COP), igual que las facturas de
+    compra, para que la cuenta 1200 no mezcle monedas. El curso usa USD.
+    """
+    from accounting.models import AccountAccount, Journal
+
+    debit_code, text = ACCOUNTING_MAP[movement.movement_type.symbol]
+    value = round(float(movement.quantity) * float(movement.price), 2)
+    if value <= 0:
+        return []
+
+    accounts = {a.code: a for a in AccountAccount.objects.filter(code__in=[debit_code, INVENTORY_ACCOUNT_CODE])}
+    missing = {debit_code, INVENTORY_ACCOUNT_CODE} - set(accounts)
+    if missing:
+        raise ValueError(f"Accounting: missing accounts {', '.join(sorted(missing))}. Run 'python manage.py seed_data'.")
+
+    number = int(movement.id_inventory_movement[len(MOVEMENT_ID_PREFIX):])
+    group = f"IM{number}"
+    detail = (movement.description or '')[:50]
+    entries = [
+        (debit_code, value, 0.0, f"{text}: {detail}" if detail else text, 'D'),
+        (INVENTORY_ACCOUNT_CODE, 0.0, value, f"Stock Out - {movement.id_inventory_movement}", 'C'),
+    ]
+    return [
+        Journal.objects.create(
+            id_journal=f"{group}{suffix}",
+            group_journal=group,
+            reference=reference[:100],
+            id_account=accounts[code],
+            debit=debit, credit=credit,
+            currency=movement.currency,
+            cost_center=movement.cost_center,
+            description=movement.description,
+            created_by=user,
+        )
+        for code, debit, credit, reference, suffix in entries
+    ]
+
+
 @transaction.atomic
-def register_adjustment(*, material, location, quantity, direction, reason, user):
-    """Ajuste manual de inventario (conteo físico, daño, pérdida, etc.)."""
+def register_movement(*, material, location, movement_type, quantity, user, cost_center=None, description=''):
+    """
+    Movimiento manual: pérdida, uso interno o ajuste de entrada/salida.
+    Las salidas validan existencia; pérdida y uso interno generan asiento.
+    """
+    if isinstance(movement_type, str):
+        movement_type = _movement_type(movement_type)
+    if movement_type.symbol not in MANUAL_MOVEMENT_TYPES:
+        raise ValueError(f"Movement type {movement_type.symbol} cannot be registered manually.")
     if quantity <= 0:
         raise ValueError("Quantity must be greater than zero.")
+    if movement_type.symbol in COST_CENTER_REQUIRED and cost_center is None:
+        raise ValueError("Cost Center is required for internal use.")
 
-    if direction == MovementType.DIRECTION_OUT:
+    if movement_type.direction == MovementType.DIRECTION_OUT:
         _check_stock(material, location, quantity)
-        movement_type = _movement_type(ADJUSTMENT_OUT)
-    else:
-        movement_type = _movement_type(ADJUSTMENT_IN)
 
     cost = average_costs([material.pk]).get(material.pk, 0)
     currency = _default_currency()
 
-    return InventoryMovements.objects.create(
+    movement = InventoryMovements.objects.create(
         id_inventory_movement=next_movement_id(),
         id_location=location,
         id_material=material,
@@ -145,9 +208,23 @@ def register_adjustment(*, material, location, quantity, direction, reason, user
         currency=currency,
         exchange_rate=rate_for(currency),
         movement_type=movement_type,
-        reference=reason[:100],
+        cost_center=cost_center,
+        description=description,
+        reference=(description or movement_type.name)[:100],
         created_by=user,
     )
+
+    if movement_type.symbol in ACCOUNTING_MAP:
+        post_inventory_journal(movement, user)
+
+    return movement
+
+
+def register_adjustment(*, material, location, quantity, direction, reason, user):
+    """Ajuste de entrada o salida (se mantiene por compatibilidad)."""
+    symbol = ADJUSTMENT_OUT if direction == MovementType.DIRECTION_OUT else ADJUSTMENT_IN
+    return register_movement(material=material, location=location, movement_type=symbol,
+                             quantity=quantity, description=reason, user=user)
 
 
 @transaction.atomic
@@ -260,6 +337,9 @@ def sync_daily_stock(today=None, full=False):
     for movement in movements:
         by_day[timezone.localdate(movement.created_at)].append(movement)
 
+    from materials.models import Material
+    units = dict(Material.objects.values_list('pk', 'unit_id'))
+
     rows = []
     day = start
     while day <= today:
@@ -287,6 +367,7 @@ def sync_daily_stock(today=None, full=False):
             balances[key] = (qty, avg)
             rows.append(Stock(
                 date=day, id_material_id=key[0], id_location_id=key[1], quantity=qty, avg_price_usd=avg,
+                unit_type_id=units.get(key[0]),
                 total_value_usd=(Decimal(qty) * avg).quantize(Decimal('0.0001')),
             ))
         day += timedelta(days=1)

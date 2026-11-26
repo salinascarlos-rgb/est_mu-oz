@@ -42,21 +42,24 @@ class InventoryTests(TestCase):
         self.assertEqual(services.get_stock(self.material, self.bodega), 10)
         self.assertEqual(services.average_costs()[self.material.pk], 2000)
 
+    def mt(self, symbol):
+        return MovementType.objects.get(symbol=symbol).pk
+
     def test_adjustment_out_reduces_stock(self):
-        r = self.client.post(reverse('inventory:adjustment_create'), {
-            'material': self.material.pk, 'location': self.bodega.pk,
-            'direction': MovementType.DIRECTION_OUT, 'quantity': 3, 'reason': 'Bultos dañados',
+        r = self.client.post(reverse('inventory:create_movement'), {
+            'movement_type': self.mt('ADJ_OUT'), 'material': self.material.pk, 'location': self.bodega.pk,
+            'quantity': 3, 'description': 'Bultos dañados',
         })
         self.assertRedirects(r, reverse('inventory:movements_list'))
         self.assertEqual(services.get_stock(self.material, self.bodega), 7)
         movement = InventoryMovements.objects.get(movement_type__symbol='ADJ_OUT')
         self.assertEqual(movement.id_inventory_movement, 'MV00000001')
-        self.assertEqual(movement.reference, 'Bultos dañados')
+        self.assertEqual(movement.description, 'Bultos dañados')
 
     def test_cannot_remove_more_than_available(self):
-        r = self.client.post(reverse('inventory:adjustment_create'), {
-            'material': self.material.pk, 'location': self.bodega.pk,
-            'direction': MovementType.DIRECTION_OUT, 'quantity': 50, 'reason': 'Error',
+        r = self.client.post(reverse('inventory:create_movement'), {
+            'movement_type': self.mt('LOSS'), 'material': self.material.pk, 'location': self.bodega.pk,
+            'quantity': 50, 'description': 'Error',
         })
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'Not enough stock')
@@ -83,8 +86,8 @@ class InventoryTests(TestCase):
         self.assertEqual(InventoryMovements.objects.count(), 1)
 
     def test_pages_and_csv(self):
-        for name in ['inventory:stock_list', 'inventory:movements_list',
-                     'inventory:adjustment_create', 'inventory:transfer_create']:
+        for name in ['inventory:stock_list', 'inventory:stock', 'inventory:movements_list',
+                     'inventory:create_movement', 'inventory:transfer_create']:
             self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
         r = self.client.get(reverse('inventory:stock_list'), {'export': 'csv'})
         lines = r.content.decode('utf-8-sig').splitlines()
@@ -95,7 +98,36 @@ class InventoryTests(TestCase):
     def test_view_only_user(self):
         self.client.force_login(self.viewer)
         self.assertEqual(self.client.get(reverse('inventory:stock_list')).status_code, 200)
-        self.assertRedirects(self.client.get(reverse('inventory:adjustment_create')), reverse('inventory:stock_list'))
+        self.assertRedirects(self.client.get(reverse('inventory:create_movement')), reverse('inventory:stock_list'))
+
+    def test_loss_posts_journal_entry(self):
+        from accounting.models import Journal
+        r = self.client.post(reverse('inventory:create_movement'), {
+            'movement_type': self.mt('LOSS'), 'material': self.material.pk, 'location': self.bodega.pk,
+            'quantity': 2, 'description': 'Bultos mojados',
+        })
+        self.assertRedirects(r, reverse('inventory:movements_list'))
+        self.assertEqual(services.get_stock(self.material, self.bodega), 8)
+        entries = {j.id_account.code: j for j in Journal.objects.filter(group_journal='IM1')}
+        self.assertEqual(entries['6590'].debit, 4000)        # 2 x 2.000 COP
+        self.assertEqual(entries['1200'].credit, 4000)
+        self.assertEqual(entries['6590'].currency.symbol, 'COP')
+
+    def test_internal_use_requires_cost_center(self):
+        from accounting.models import CostCenter, Journal
+        data = {'movement_type': self.mt('INT_USE'), 'material': self.material.pk,
+                'location': self.bodega.pk, 'quantity': 1, 'description': 'Muestra para cliente'}
+        r = self.client.post(reverse('inventory:create_movement'), data)
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, 'Cost Center is required')
+        data['cost_center'] = CostCenter.objects.get(id_cost_center='VEN').pk
+        r = self.client.post(reverse('inventory:create_movement'), data)
+        self.assertRedirects(r, reverse('inventory:movements_list'))
+        debit = Journal.objects.get(id_account__code='6020')
+        self.assertEqual(debit.cost_center.id_cost_center, 'VEN')
+
+    def test_old_adjustment_url_redirects(self):
+        self.assertRedirects(self.client.get(reverse('inventory:adjustment_create')), reverse('inventory:create_movement'))
 
     def test_user_without_permission(self):
         self.client.force_login(self.nobody)
@@ -110,9 +142,8 @@ from core.models import ExchangeRate
 from .models import Stock
 
 
-@override_settings(BASE_CURRENCY='USD')
-class StockSnapshotTests(TestCase):
-    """Foto diaria de stock valorizada en USD (video 16), restando salidas."""
+class SnapshotDataMixin:
+    """Datos y helper comunes para las pruebas de la foto diaria."""
 
     @classmethod
     def setUpTestData(cls):
@@ -133,6 +164,11 @@ class StockSnapshotTests(TestCase):
         moment = timezone.now() - timedelta(days=days_ago)
         InventoryMovements.objects.filter(pk=mv.pk).update(created_at=moment)
         return mv
+
+
+@override_settings(BASE_CURRENCY='USD')
+class StockSnapshotTests(SnapshotDataMixin, TestCase):
+    """Foto diaria de stock valorizada en USD (video 16), restando salidas."""
 
     def test_purchase_then_sale_is_subtracted(self):
         today = timezone.localdate()
@@ -185,6 +221,25 @@ class StockSnapshotTests(TestCase):
         r = self.client.get(reverse('inventory:stock_list'))
         self.assertContains(r, 'Value in USD')
         self.assertContains(r, '100.00')                 # 10 x 10 USD
+
+
+@override_settings(BASE_CURRENCY='USD')
+class StockByDateTests(SnapshotDataMixin, TestCase):
+    """Lista de stock filtrada por fecha (video 17)."""
+
+    def test_past_date_shows_snapshot(self):
+        UserRole.objects.create(user_id=self.user, role=Role.objects.get(role_name='Administrator'))
+        self.client.force_login(self.user)
+        self.movement('F1', 'PUR', 10, days_ago=2, price=40000)
+        self.movement('F2', 'LOSS', 3, days_ago=0)
+        services.sync_daily_stock()
+        yesterday = timezone.localdate() - timedelta(days=1)
+        r = self.client.get(reverse('inventory:stock'), {'date': yesterday.isoformat(), 'export': 'csv'})
+        line = r.content.decode('utf-8-sig').splitlines()[1]
+        self.assertIn(',10,', line)          # ayer había 10
+        r = self.client.get(reverse('inventory:stock'), {'export': 'csv'})
+        self.assertIn(',7,', r.content.decode('utf-8-sig').splitlines()[1])   # hoy quedan 7
+        self.assertEqual(Stock.objects.get(date=yesterday).unit_type.symbol, 'UND')
 
 
 class BackgroundTaskTests(TestCase):

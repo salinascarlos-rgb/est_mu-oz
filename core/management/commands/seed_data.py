@@ -13,7 +13,7 @@ from core.models import Status, Currency, Country
 from materials.models import Unit, MaterialType
 from inventory.models import MovementType
 from purchases.models import OrderStatus, GoodsReceiptStatus, InvoiceStatus
-from accounting.models import AccountNature, AccountType, AccountGroup, AccountAccount
+from accounting.models import AccountNature, AccountType, AccountGroup, AccountAccount, CostCenter
 from users.models import Role
 
 
@@ -50,6 +50,8 @@ MOVEMENT_TYPES = [
     ('Adjustment Out', 'ADJ_OUT', -1),
     ('Transfer In', 'TRF_IN', 1),
     ('Transfer Out', 'TRF_OUT', -1),
+    ('Damage / Loss', 'LOSS', -1),
+    ('Internal Use', 'INT_USE', -1),
 ]
 
 ACCOUNT_TYPES = [
@@ -76,6 +78,15 @@ ACCOUNTS = [
     ('2200', '2200', 'Accounts Payable', '2', '3', '2'),
     ('4100', '4100', 'Sales Revenue', '4', '5', '2'),
     ('6100', '6100', 'Cost of Goods Sold', '5', '6', '1'),
+    ('6020', '6020', 'Internal Use', '5', '6', '1'),
+    ('6590', '6590', 'Inventory Loss', '5', '6', '1'),
+]
+
+# Centros de costo de ejemplo (se pueden editar en el admin)
+COST_CENTERS = [
+    ('ADM', 'Administración', 'Gastos administrativos y de oficina'),
+    ('VEN', 'Ventas', 'Punto de venta y atención a clientes'),
+    ('BOD', 'Bodega', 'Almacenamiento y despacho'),
 ]
 
 
@@ -152,6 +163,11 @@ class Command(BaseCommand):
                 status=active,
             )
             total += 1
+
+        for pk, name, description in COST_CENTERS:
+            total += CostCenter.objects.get_or_create(
+                id_cost_center=pk, defaults={'name': name, 'description': description, 'status': active}
+            )[1]
 
         total += Role.objects.get_or_create(
             role_name='Administrator',
