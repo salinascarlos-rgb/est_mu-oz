@@ -3,7 +3,7 @@ from .models import MovementType, LocationInventory, InventoryMovements
 
 @admin.register(MovementType)
 class MovementTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'symbol')
+    list_display = ('name', 'symbol', 'direction')
 
 @admin.register(LocationInventory)
 class LocationInventoryAdmin(admin.ModelAdmin):
@@ -11,4 +11,4 @@ class LocationInventoryAdmin(admin.ModelAdmin):
 
 @admin.register(InventoryMovements)
 class InventoryMovementsAdmin(admin.ModelAdmin):
-    list_display = ('id_inventory_movement', 'id_location', 'id_material', 'quantity', 'unit_type', 'movement_type')
+    list_display = ('id_inventory_movement', 'id_location', 'id_material', 'quantity', 'unit_type', 'movement_type', 'reference')

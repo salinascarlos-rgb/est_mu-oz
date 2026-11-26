@@ -40,13 +40,16 @@ INVOICE_STATUSES = [
     ('Cancelled', 'CANCELLED'),
 ]
 
+# (name, symbol, direction): +1 suma al inventario, -1 resta
 MOVEMENT_TYPES = [
-    ('Purchase', 'PUR'),
-    ('Purchase Return', 'PUR_RET'),
-    ('Sale', 'SAL'),
-    ('Sales Return', 'SAL_RET'),
-    ('Adjustment In', 'ADJ_IN'),
-    ('Adjustment Out', 'ADJ_OUT'),
+    ('Purchase', 'PUR', 1),
+    ('Purchase Return', 'PUR_RET', -1),
+    ('Sale', 'SAL', -1),
+    ('Sales Return', 'SAL_RET', 1),
+    ('Adjustment In', 'ADJ_IN', 1),
+    ('Adjustment Out', 'ADJ_OUT', -1),
+    ('Transfer In', 'TRF_IN', 1),
+    ('Transfer Out', 'TRF_OUT', -1),
 ]
 
 ACCOUNT_TYPES = [
@@ -104,7 +107,14 @@ class Command(BaseCommand):
         total += self._by_symbol(OrderStatus, ORDER_STATUSES)
         total += self._by_symbol(GoodsReceiptStatus, GOODS_RECEIPT_STATUSES)
         total += self._by_symbol(InvoiceStatus, INVOICE_STATUSES)
-        total += self._by_symbol(MovementType, MOVEMENT_TYPES)
+        for name, symbol, direction in MOVEMENT_TYPES:
+            movement_type, was_created = MovementType.objects.get_or_create(
+                symbol=symbol, defaults={'name': name, 'direction': direction}
+            )
+            if not was_created and movement_type.direction != direction:
+                movement_type.direction = direction
+                movement_type.save(update_fields=['direction'])
+            total += was_created
 
         for pk, name, symbol, effect in [
             ('1', 'Debit', 'DR', 'Increases assets and expenses'),

@@ -1,13 +1,21 @@
 from django.db import models
 from django.conf import settings
-from django.contrib.auth.models import User
 from core.models import Status, Currency
 from materials.models import Material,Unit
 
 class MovementType(models.Model):
 
+    DIRECTION_IN = 1
+    DIRECTION_OUT = -1
+    DIRECTION_CHOICES = [
+        (DIRECTION_IN, 'In (+)'),
+        (DIRECTION_OUT, 'Out (-)'),
+    ]
+
     name = models.CharField(verbose_name="Name",max_length=50)
     symbol = models.CharField(verbose_name="Symbol",max_length=10)
+    # +1 suma al inventario, -1 resta. Las cantidades se guardan siempre positivas.
+    direction = models.IntegerField(verbose_name="Direction", choices=DIRECTION_CHOICES, default=DIRECTION_IN)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -53,6 +61,7 @@ class InventoryMovements(models.Model):
     currency = models.ForeignKey(Currency,on_delete=models.PROTECT,verbose_name='Currency')
 
     movement_type = models.ForeignKey(MovementType, on_delete=models.PROTECT, verbose_name="Movement ID")
+    reference = models.CharField(verbose_name="Reference", max_length=100, blank=True, default='')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

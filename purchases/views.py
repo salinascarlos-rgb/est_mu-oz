@@ -424,6 +424,7 @@ def post_goods_receipt(request):
                     movement_type=movement_type_pur,
                     price=po_line.price,
                     currency=po_line.currency_supplier,
+                    reference=f"GR {next_gr_id} / PO {purchase_order.id_purchase_order}",
                     created_by=request.user,
                 )
 
