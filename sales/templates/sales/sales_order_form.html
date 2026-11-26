@@ -1,0 +1,215 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto bg-white p-8 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b-2 border-gray-300 pb-2">{{ title }}</h2>
+
+    <form id="so-form" class="space-y-6" novalidate>
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="customer_search" class="block text-sm font-medium text-gray-700">Customer ID</label>
+                <input type="text" id="customer_search" placeholder="Enter ID and press Enter" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#233b6e]">
+                <input type="hidden" id="customer_id">
+            </div>
+            <div>
+                <label for="estimated_delivery_date" class="block text-sm font-medium text-gray-700">Est. Delivery Date</label>
+                <input type="date" id="estimated_delivery_date" min="{% now 'Y-m-d' %}" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#233b6e]">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input type="text" id="name_display" placeholder="Name" readonly class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-100">
+            <input type="text" id="city_display" placeholder="City" readonly class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-100">
+            <input type="text" id="address_display" placeholder="Address" readonly class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-100">
+            <input type="text" id="currency_display" placeholder="Currency" readonly class="px-3 py-2 border border-gray-200 rounded-lg bg-gray-100">
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Material</th>
+                        <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+                        <th class="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase">Available</th>
+                        <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
+                        <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                        <th class="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase">WAC</th>
+                        <th class="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase">Margin</th>
+                        <th class="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="lines"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="7" class="px-2 py-3 text-right text-sm font-semibold text-gray-700">Order total</td>
+                        <td id="order_total" class="px-2 py-3 text-right text-sm font-bold text-gray-900">0</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <button type="button" id="add-line" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-300">+ Add Item</button>
+
+        <div class="flex justify-end space-x-4 pt-4 border-t">
+            <a href="{% url 'sales:sales_order_list' %}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400 transition-colors duration-300">Cancel</a>
+            <button type="submit" id="submit-btn" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg hover:bg-[#1a2c53] transition-colors duration-300">Create Sales Order</button>
+        </div>
+    </form>
+</div>
+
+<template id="line-template">
+    <tr class="line">
+        <td class="px-2 py-2">
+            <select class="material w-44 px-2 py-1 border border-gray-300 rounded-md text-sm bg-white">
+                <option value="">Select...</option>
+                {% for m in materials %}<option value="{{ m.pk }}">{{ m.id_material }} - {{ m.name }}</option>{% endfor %}
+            </select>
+        </td>
+        <td class="px-2 py-2">
+            <select class="location w-40 px-2 py-1 border border-gray-300 rounded-md text-sm bg-white">
+                <option value="">Select...</option>
+                {% for loc in locations %}<option value="{{ loc.pk }}">{{ loc.code }} - {{ loc.name }}</option>{% endfor %}
+            </select>
+        </td>
+        <td class="available px-2 py-2 text-right text-sm text-gray-700">—</td>
+        <td class="px-2 py-2"><input type="number" min="1" step="1" class="qty w-20 px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+        <td class="px-2 py-2"><input type="number" min="0" step="any" class="price w-28 px-2 py-1 border border-gray-300 rounded-md text-sm"></td>
+        <td class="wac px-2 py-2 text-right text-sm text-gray-500">—</td>
+        <td class="margin px-2 py-2 text-right text-sm font-semibold">—</td>
+        <td class="total px-2 py-2 text-right text-sm text-gray-900">0</td>
+        <td class="px-2 py-2"><button type="button" class="remove text-red-600 hover:text-red-900 text-sm">Remove</button></td>
+    </tr>
+</template>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const D = document;
+    const form = D.getElementById('so-form');
+    const linesBody = D.getElementById('lines');
+    const template = D.getElementById('line-template');
+    const csrftoken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+    const fmt = (n) => Number(n || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
+    const URLS = {
+        customer: "{% url 'sales:api_customer_details' customer_id='__ID__' %}",
+        stock: "{% url 'sales:api_stock_data' %}",
+        create: "{% url 'sales:sales_order_form' %}",
+    };
+
+    // --- Cliente ---
+    const customerInput = D.getElementById('customer_search');
+    const fillCustomer = (data) => {
+        D.getElementById('customer_id').value = data.id_customer || '';
+        ['name', 'city', 'address', 'currency'].forEach(f => D.getElementById(`${f}_display`).value = data[f] || '');
+        linesBody.querySelectorAll('tr.line').forEach(loadStock);
+    };
+    const loadCustomer = async () => {
+        const id = customerInput.value.trim();
+        if (!id) { fillCustomer({}); return; }
+        const r = await fetch(URLS.customer.replace('__ID__', encodeURIComponent(id)));
+        if (!r.ok) { alert(`Customer "${id}" not found.`); fillCustomer({}); return; }
+        fillCustomer(await r.json());
+    };
+    customerInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); loadCustomer(); } });
+    customerInput.addEventListener('change', loadCustomer);
+
+    // --- Líneas ---
+    const recalc = (row) => {
+        const qty = parseFloat(row.querySelector('.qty').value) || 0;
+        const price = parseFloat(row.querySelector('.price').value) || 0;
+        const wac = parseFloat(row.dataset.wac || 0);
+        const available = parseFloat(row.dataset.available || 0);
+        const marginCell = row.querySelector('.margin');
+        row.querySelector('.total').textContent = fmt(qty * price);
+        if (price > 0) {
+            const margin = ((price - wac) / price) * 100;
+            marginCell.textContent = `${margin.toFixed(2)}%`;
+            marginCell.className = `margin px-2 py-2 text-right text-sm font-semibold ${margin < 0 ? 'text-red-600' : 'text-green-700'}`;
+        } else {
+            marginCell.textContent = '—';
+        }
+        row.querySelector('.qty').classList.toggle('border-red-500', row.dataset.available !== undefined && qty > available);
+        let total = 0;
+        linesBody.querySelectorAll('tr.line').forEach(r => {
+            total += (parseFloat(r.querySelector('.qty').value) || 0) * (parseFloat(r.querySelector('.price').value) || 0);
+        });
+        D.getElementById('order_total').textContent = fmt(total);
+    };
+
+    async function loadStock(row) {
+        const material = row.querySelector('.material').value;
+        const location = row.querySelector('.location').value;
+        if (!material || !location) { row.querySelector('.available').textContent = '—'; delete row.dataset.available; recalc(row); return; }
+        const params = new URLSearchParams({material_id: material, location_id: location, currency: D.getElementById('currency_display').value});
+        const r = await fetch(`${URLS.stock}?${params}`);
+        const data = await r.json();
+        row.dataset.available = data.available;
+        row.dataset.wac = data.wac;
+        row.querySelector('.available').textContent = `${fmt(data.available)} ${data.unit}`;
+        row.querySelector('.available').title = `Physical: ${data.physical} / Reserved: ${data.reserved}`;
+        row.querySelector('.wac').textContent = fmt(data.wac);
+        recalc(row);
+    }
+
+    const addLine = () => {
+        const row = template.content.firstElementChild.cloneNode(true);
+        linesBody.appendChild(row);
+        row.querySelectorAll('.material, .location').forEach(el => el.addEventListener('change', () => loadStock(row)));
+        row.querySelectorAll('.qty, .price').forEach(el => el.addEventListener('input', () => recalc(row)));
+        row.querySelector('.remove').addEventListener('click', () => { row.remove(); recalc(linesBody.querySelector('tr.line') || row); });
+    };
+    D.getElementById('add-line').addEventListener('click', addLine);
+    addLine();
+
+    // --- Enviar ---
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const customerId = D.getElementById('customer_id').value;
+        const delivery = D.getElementById('estimated_delivery_date').value;
+        if (!customerId) { alert('Search and select a customer first (type the ID and press Enter).'); return; }
+        if (!delivery) { alert('Estimated delivery date is required.'); return; }
+
+        const lines = [];
+        const rows = linesBody.querySelectorAll('tr.line');
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const line = {
+                material_id: row.querySelector('.material').value,
+                location_id: row.querySelector('.location').value,
+                quantity: parseFloat(row.querySelector('.qty').value),
+                price: parseFloat(row.querySelector('.price').value),
+            };
+            if (!line.material_id || !line.location_id || !(line.quantity > 0) || !(line.price > 0)) {
+                alert(`Line ${i + 1}: complete material, location, quantity and price.`); return;
+            }
+            lines.push(line);
+        }
+        if (!lines.length) { alert('Add at least one line.'); return; }
+
+        const btn = D.getElementById('submit-btn');
+        btn.disabled = true; btn.textContent = 'Creating...';
+        try {
+            const r = await fetch(URLS.create, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrftoken},
+                body: JSON.stringify({id_customer: customerId, estimated_delivery_date: delivery, lines}),
+            });
+            const data = await r.json();
+            if (!r.ok || !data.success) throw new Error(data.error || `Error ${r.status}`);
+            alert(data.message);
+            window.location.href = data.redirect_url;
+        } catch (err) {
+            alert(`Error: ${err.message}`);
+            btn.disabled = false; btn.textContent = 'Create Sales Order';
+        }
+    });
+})();
+</script>
+{% endblock extra_js %}

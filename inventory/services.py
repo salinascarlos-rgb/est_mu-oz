@@ -339,6 +339,12 @@ def sync_daily_stock(today=None, full=False):
 
     from materials.models import Material
     units = dict(Material.objects.values_list('pk', 'unit_id'))
+    # Reservas de ventas abiertas (video 18): solo aplican a la foto de hoy
+    try:
+        from sales.services import reserved_map
+        reserved_today = reserved_map()
+    except ImportError:
+        reserved_today = {}
 
     rows = []
     day = start
@@ -368,6 +374,7 @@ def sync_daily_stock(today=None, full=False):
             rows.append(Stock(
                 date=day, id_material_id=key[0], id_location_id=key[1], quantity=qty, avg_price_usd=avg,
                 unit_type_id=units.get(key[0]),
+                reserved_quantity=reserved_today.get(key, 0) if day == today else 0,
                 total_value_usd=(Decimal(qty) * avg).quantize(Decimal('0.0001')),
             ))
         day += timedelta(days=1)

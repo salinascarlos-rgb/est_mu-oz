@@ -15,6 +15,7 @@ from inventory.models import MovementType
 from purchases.models import OrderStatus, GoodsReceiptStatus, InvoiceStatus
 from accounting.models import AccountNature, AccountType, AccountGroup, AccountAccount, CostCenter
 from users.models import Role
+from sales.models import SalesOrderStatus
 
 
 ORDER_STATUSES = [
@@ -31,6 +32,16 @@ ORDER_STATUSES = [
 GOODS_RECEIPT_STATUSES = [
     ('Partially received', 'PARTIAL_RECEIVED'),
     ('Completed', 'COMPLETED'),
+    ('Cancelled', 'CANCELLED'),
+]
+
+SALES_ORDER_STATUSES = [
+    ('Draft', 'DRAFT'),
+    ('Confirmed', 'CONFIRMED'),
+    ('Partially Sent', 'PARTIAL_SENT'),
+    ('Sent', 'SENT'),
+    ('Invoiced', 'INVOICED'),
+    ('Closed', 'CLOSED'),
     ('Cancelled', 'CANCELLED'),
 ]
 
@@ -120,6 +131,7 @@ class Command(BaseCommand):
         total += self._by_symbol(OrderStatus, ORDER_STATUSES)
         total += self._by_symbol(GoodsReceiptStatus, GOODS_RECEIPT_STATUSES)
         total += self._by_symbol(InvoiceStatus, INVOICE_STATUSES)
+        total += self._by_symbol(SalesOrderStatus, SALES_ORDER_STATUSES)
         for name, symbol, direction in MOVEMENT_TYPES:
             movement_type, was_created = MovementType.objects.get_or_create(
                 symbol=symbol, defaults={'name': name, 'direction': direction}
