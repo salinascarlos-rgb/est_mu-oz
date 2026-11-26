@@ -1,9 +1,13 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from users.models import UserRole
+from .background import trigger_background_tasks
 
 @login_required
 def dashboard_view(request):
+
+    # Tasas de cambio y foto diaria de stock en segundo plano (video 16)
+    trigger_background_tasks()
 
     user_roles = UserRole.objects.filter(user_id=request.user)
 
@@ -32,3 +36,10 @@ def dashboard_view(request):
     }
 
     return render(request, 'core/dashboard.html', context)
+
+
+def update_exchange_rates_background():
+    """Mismo nombre que en el curso. La lógica está en core/exchange_rates.py."""
+    from .exchange_rates import update_exchange_rates
+    return update_exchange_rates()
+

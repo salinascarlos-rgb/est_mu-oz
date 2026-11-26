@@ -98,6 +98,8 @@ class Command(BaseCommand):
 
         cop, c = Currency.objects.get_or_create(symbol='COP', defaults={'name': 'Peso Colombiano'})
         total += c
+        # Moneda base para valorizar el inventario (settings.BASE_CURRENCY)
+        total += Currency.objects.get_or_create(symbol='USD', defaults={'name': 'Dólar estadounidense'})[1]
         colombia, c = Country.objects.get_or_create(name='Colombia')
         total += c
 

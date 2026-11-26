@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 
 from core.models import Currency
+from core.exchange_rates import base_currency_code
 from users.models import UserRole
 from .forms import AdjustmentForm, TransferForm, active_locations
 from .models import InventoryMovements, MovementType
@@ -62,23 +63,29 @@ def stock_list(request):
 
     rows = list(rows)
     costs = services.average_costs({row['id_material'] for row in rows})
+    base_values, snapshot_date = services.latest_stock_values()
     total_value = 0
+    total_value_base = 0
     for row in rows:
         row['avg_cost'] = costs.get(row['id_material'], 0)
         row['value'] = row['stock'] * row['avg_cost']
+        row['value_base'] = base_values.get((row['id_material'], row['id_location']))
         total_value += row['value']
+        total_value_base += row['value_base'] or 0
 
     currency = Currency.objects.order_by('pk').first()
     currency_symbol = currency.symbol if currency else ''
+    base_currency = base_currency_code()
 
     if request.GET.get('export') == 'csv':
         response, writer = csv_response('inventory_stock.csv')
-        writer.writerow(['Location Code', 'Location', 'Material ID', 'Material', 'Unit', 'Stock', 'Average Cost', 'Value', 'Currency'])
+        writer.writerow(['Location Code', 'Location', 'Material ID', 'Material', 'Unit', 'Stock', 'Average Cost', 'Value', 'Currency', f'Value {base_currency}'])
         for row in rows:
             writer.writerow([
                 row['id_location__code'], row['id_location__name'],
                 row['id_material__id_material'], row['id_material__name'], row['id_material__unit__symbol'],
                 row['stock'], round(row['avg_cost'], 2), round(row['value'], 2), currency_symbol,
+                round(row['value_base'], 2) if row['value_base'] is not None else '',
             ])
         return response
 
@@ -88,6 +95,9 @@ def stock_list(request):
         'page_obj': page_obj,
         'locations': active_locations(),
         'total_value': total_value,
+        'total_value_base': total_value_base,
+        'base_currency': base_currency,
+        'snapshot_date': snapshot_date,
         'total_rows': len(rows),
         'currency_symbol': currency_symbol,
         'show_zero': show_zero,
@@ -207,3 +217,9 @@ def transfer_create(request):
 
     context = {'form': form, 'title': 'Transfer Between Locations', 'submit_label': 'Register Transfer', 'active_tab': 'transfer', 'can_edit': True}
     return render(request, 'inventory/movement_form.html', context)
+
+
+def sync_daily_stock_background():
+    """Mismo nombre que en el curso. La lógica está en inventory/services.py."""
+    return services.sync_daily_stock()
+
