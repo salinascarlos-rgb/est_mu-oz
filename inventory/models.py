@@ -93,6 +93,8 @@ class Stock(models.Model):
     date = models.DateField(verbose_name='Date', default=date.today)
     quantity = models.IntegerField(verbose_name="Quantity", default=0)
     unit_type = models.ForeignKey(Unit, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Unit Type")
+    # Cantidad comprometida en órdenes de venta abiertas (video 18)
+    reserved_quantity = models.IntegerField(verbose_name="Reserved Quantity", default=0)
 
     avg_price_usd = models.DecimalField(max_digits=18, decimal_places=6, default=Decimal('0'), verbose_name="Average Price (base)")
     total_value_usd = models.DecimalField(max_digits=20, decimal_places=4, default=Decimal('0'), verbose_name="Total Value (base)")

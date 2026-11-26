@@ -15,7 +15,7 @@ class InventoryMovementsAdmin(admin.ModelAdmin):
 
 @admin.register(Stock)
 class StockAdmin(admin.ModelAdmin):
-    list_display = ('date', 'id_location', 'id_material', 'quantity', 'unit_type', 'avg_price_usd', 'total_value_usd')
+    list_display = ('date', 'id_location', 'id_material', 'quantity', 'reserved_quantity', 'unit_type', 'avg_price_usd', 'total_value_usd')
     list_filter = ('id_location',)
     date_hierarchy = 'date'
 

@@ -80,7 +80,8 @@ def stock_list(request):
             'id_material': s.id_material_id, 'id_material__id_material': s.id_material.id_material,
             'id_material__name': s.id_material.name,
             'id_material__unit__symbol': s.unit_type.symbol if s.unit_type else '',
-            'stock': s.quantity, 'avg_cost': None, 'value': None, 'value_base': s.total_value_usd,
+            'stock': s.quantity, 'reserved': s.reserved_quantity, 'available': s.quantity - s.reserved_quantity,
+            'avg_cost': None, 'value': None, 'value_base': s.total_value_usd,
         } for s in snapshot.order_by('id_location__code', 'id_material__id_material')]
         total_value = None
         total_value_base = sum((row['value_base'] for row in rows), 0)
@@ -95,7 +96,14 @@ def stock_list(request):
         base_values, snapshot_date = services.latest_stock_values()
         total_value = 0
         total_value_base = 0
+        try:
+            from sales.services import reserved_map
+            reserved = reserved_map()
+        except ImportError:
+            reserved = {}
         for row in rows:
+            row['reserved'] = reserved.get((row['id_material'], row['id_location']), 0)
+            row['available'] = row['stock'] - row['reserved']
             row['avg_cost'] = costs.get(row['id_material'], 0)
             row['value'] = row['stock'] * row['avg_cost']
             row['value_base'] = base_values.get((row['id_material'], row['id_location']))
@@ -108,12 +116,12 @@ def stock_list(request):
 
     if request.GET.get('export') == 'csv':
         response, writer = csv_response(f'inventory_stock_{selected_date.isoformat()}.csv')
-        writer.writerow(['Location Code', 'Location', 'Material ID', 'Material', 'Unit', 'Stock', 'Average Cost', 'Value', 'Currency', f'Value {base_currency}'])
+        writer.writerow(['Location Code', 'Location', 'Material ID', 'Material', 'Unit', 'Stock', 'Reserved', 'Available', 'Average Cost', 'Value', 'Currency', f'Value {base_currency}'])
         for row in rows:
             writer.writerow([
                 row['id_location__code'], row['id_location__name'],
                 row['id_material__id_material'], row['id_material__name'], row['id_material__unit__symbol'],
-                row['stock'],
+                row['stock'], row['reserved'], row['available'],
                 round(row['avg_cost'], 2) if row['avg_cost'] is not None else '',
                 round(row['value'], 2) if row['value'] is not None else '',
                 currency_symbol if row['value'] is not None else '',

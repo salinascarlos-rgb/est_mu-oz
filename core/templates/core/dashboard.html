@@ -48,7 +48,7 @@
         {% endif %}
 
         {% if permissions.sales > 0 %}
-        <a href="#" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+        <a href="{% url 'sales:sales_order_list' %}" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
             <div class="flex flex-col items-center text-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up-icon lucide-trending-up"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg>
                 <h3 class="text-x1 font-semibold text-gray-800">Sales</h3>

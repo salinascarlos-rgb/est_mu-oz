@@ -67,7 +67,9 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material ID</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material</th>
-                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Physical</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Reserved</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Available</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. Cost</th>
                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Value {{ currency_symbol }}</th>
@@ -81,6 +83,8 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ row.id_material__id_material }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ row.id_material__name }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold {% if row.stock <= 0 %}text-red-600{% else %}text-gray-900{% endif %}">{{ row.stock|intcomma }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-yellow-700">{{ row.reserved|intcomma }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold {% if row.available <= 0 %}text-red-600{% else %}text-green-700{% endif %}">{{ row.available|intcomma }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ row.id_material__unit__symbol }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">{% if row.avg_cost is not None %}{{ row.avg_cost|floatformat:2|intcomma }}{% else %}—{% endif %}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">{% if row.value is not None %}{{ row.value|floatformat:0|intcomma }}{% else %}—{% endif %}</td>
@@ -88,7 +92,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="8" class="px-6 py-8 text-center text-sm text-gray-500">No stock found. Stock appears here when you post a goods receipt or register an adjustment.</td>
+                <td colspan="10" class="px-6 py-8 text-center text-sm text-gray-500">No stock found. Stock appears here when you post a goods receipt or register an adjustment.</td>
             </tr>
             {% endfor %}
         </tbody>

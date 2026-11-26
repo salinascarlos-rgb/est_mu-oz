@@ -1,0 +1,58 @@
+{% extends "core/base.html" %}
+{% load humanize %}
+
+{% block title %}Sales Order {{ order.id_sales_order }}{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-800 mb-6 border-b-2 border-gray-400 pb-2">Sales Order {{ order.id_sales_order }}</h2>
+
+<div class="bg-white p-6 rounded-lg shadow-md mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+    <div><p class="text-gray-500">Customer</p><p class="font-semibold text-gray-800">{{ order.id_customer.id_customer }} - {{ order.id_customer.name }}</p></div>
+    <div><p class="text-gray-500">Issue date</p><p class="font-semibold text-gray-800">{{ order.issue_date|date:"Y-m-d" }}</p></div>
+    <div><p class="text-gray-500">Est. delivery</p><p class="font-semibold text-gray-800">{{ order.estimated_delivery_date|date:"Y-m-d" }}</p></div>
+    <div><p class="text-gray-500">Status</p><p class="font-semibold text-gray-800">{{ order.status.name }}</p></div>
+</div>
+
+<div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Line</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Material</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Qty</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Shipped</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Price</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">WAC</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Margin</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for line in lines %}
+            <tr>
+                <td class="px-4 py-3 text-sm text-gray-500">{{ line.id_sales_order_line }}</td>
+                <td class="px-4 py-3 text-sm text-gray-900">{{ line.id_material.id_material }} <span class="text-gray-500">- {{ line.id_material.name }}</span></td>
+                <td class="px-4 py-3 text-sm text-gray-900">{{ line.id_location.code }}</td>
+                <td class="px-4 py-3 text-sm text-right">{{ line.quantity|intcomma }} {{ line.unit_material.symbol }}</td>
+                <td class="px-4 py-3 text-sm text-right text-gray-500">{{ line.shipped_quantity|intcomma }}</td>
+                <td class="px-4 py-3 text-sm text-right">{{ line.currency.symbol }} {{ line.price|floatformat:2|intcomma }}</td>
+                <td class="px-4 py-3 text-sm text-right text-gray-500">{{ line.wac|floatformat:2|intcomma }}</td>
+                <td class="px-4 py-3 text-sm text-right font-semibold {% if line.margin < 0 %}text-red-600{% else %}text-green-700{% endif %}">{{ line.margin|floatformat:2 }}%</td>
+                <td class="px-4 py-3 text-sm text-right text-gray-900">{{ line.line_total|floatformat:0|intcomma }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="8" class="px-4 py-3 text-right text-sm font-semibold text-gray-700">Total</td>
+                <td class="px-4 py-3 text-right text-sm font-bold text-gray-900">{{ order.total_amount|floatformat:0|intcomma }}</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="flex justify-end mt-6">
+    <a href="{% url 'sales:sales_order_list' %}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-400 transition-colors duration-300">Back</a>
+</div>
+{% endblock content %}
