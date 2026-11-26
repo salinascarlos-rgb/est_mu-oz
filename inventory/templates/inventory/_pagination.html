@@ -1,6 +1,6 @@
 {% if page_obj.has_other_pages %}
 <div class="flex justify-center mt-6">
-    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Paginación">
         {% if page_obj.has_previous %}
         <a href="{% querystring page=page_obj.previous_page_number %}" class="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">&lsaquo;</a>
         {% endif %}

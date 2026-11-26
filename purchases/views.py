@@ -55,11 +55,11 @@ def get_by_symbol(model, symbol, label):
     try:
         return model.objects.get(symbol=symbol)
     except model.DoesNotExist:
-        raise ValueError(f"{label} '{symbol}' not found. Run 'python manage.py seed_data' to load base data.")
+        raise ValueError(f"{label} '{symbol}' no existe. Ejecute 'python manage.py seed_data' para cargar los datos base.")
 
 
 def json_permission_denied():
-    return JsonResponse({'error': 'You do not have permission to perform this action.'}, status=403)
+    return JsonResponse({'error': 'No tiene permiso para realizar esta acción.'}, status=403)
 
 
 # ---------------------------------------------------------------------------
@@ -95,7 +95,7 @@ def purchase_order_list(request):
         writer = csv.writer(response)
 
         # Lista (no conjunto) para que las columnas salgan siempre en el mismo orden
-        writer.writerow(['ID PO', 'Supplier ID', 'Supplier Name', 'Issue Date', 'Estimated Delivery Date', 'Status Symbol', 'Status Name', 'Created By', 'Created At'])
+        writer.writerow(['ID OC', 'ID proveedor', 'Proveedor', 'Fecha de emisión', 'Fecha estimada de entrega', 'Código estado', 'Estado', 'Creado por', 'Creado el'])
 
         for po in purchase_order_list:
             writer.writerow([
@@ -183,7 +183,7 @@ def purchase_order_form(request):
 
     context = {
         'is_detail': False,
-        'title': 'Create New Purchase Order'
+        'title': 'Crear orden de compra'
     }
 
     return render(request, 'purchases/purchase_order_form.html', context)
@@ -228,15 +228,15 @@ def create_purchase_order(request):
         lines_data = data.get('lines', [])
 
         if not supplier_id_str or not estimated_delivery_date or not lines_data:
-            return JsonResponse({'error': 'Missing required fields (Supplier ID, Delivery Date, or Lines Items).'}, status=400)
+            return JsonResponse({'error': 'Faltan datos obligatorios (proveedor, fecha de entrega o líneas).'}, status=400)
 
         # Todo dentro de un atomic: si una línea falla, no queda una OC a medias
         with transaction.atomic():
             supplier = Supplier.objects.filter(id_supplier=supplier_id_str).first()
             if supplier is None:
-                raise ValueError(f"Supplier ID '{supplier_id_str}' not found.")
+                raise ValueError(f"No existe el proveedor '{supplier_id_str}'.")
 
-            status = get_by_symbol(OrderStatus, INITIAL_PO_STATUS, 'Order status')
+            status = get_by_symbol(OrderStatus, INITIAL_PO_STATUS, 'Estado de orden')
 
             next_po_id = next_sequence(PurchaseOrder, 'id_purchase_order')
 
@@ -258,19 +258,19 @@ def create_purchase_order(request):
                     quantity = int(float(line_data.get('quantity')))
                     price = float(line_data.get('price'))
                 except (TypeError, ValueError):
-                    raise ValueError(f"Invalid quantity or price in line {i}.")
+                    raise ValueError(f"Cantidad o precio inválido en la línea {i}.")
                 if quantity <= 0 or price <= 0:
-                    raise ValueError(f"Quantity and price must be greater than zero in line {i}.")
+                    raise ValueError(f"La cantidad y el precio deben ser mayores que cero en la línea {i}.")
 
                 material = Material.objects.filter(id_material=material_id).first()
                 if material is None:
-                    raise ValueError(f"Material ID '{material_id}' not found for line {i}.")
+                    raise ValueError(f"No existe el material '{material_id}' (línea {i}).")
                 unit_obj = Unit.objects.filter(symbol=unit_symbol).first()
                 if unit_obj is None:
-                    raise ValueError(f"Unit symbol '{unit_symbol}' not found for line {i}.")
+                    raise ValueError(f"No existe la unidad '{unit_symbol}' (línea {i}).")
                 currency_obj = Currency.objects.filter(symbol=currency_symbol).first()
                 if currency_obj is None:
-                    raise ValueError(f"Currency symbol '{currency_symbol}' not found for line {i}.")
+                    raise ValueError(f"No existe la moneda '{currency_symbol}' (línea {i}).")
 
                 line_po_id = f"{next_po_id}-{str(position).zfill(3)}"
 
@@ -290,18 +290,18 @@ def create_purchase_order(request):
         response_data = {
             'success': True,
             'id_purchase_order': next_po_id,
-            'message': f"Purchase Order {next_po_id} created successfully.",
+            'message': f"Orden de compra {next_po_id} creada correctamente.",
             'redirect_url': reverse('purchases:purchase_order_list'),
         }
         return JsonResponse(response_data, status=201)
 
     except ValueError as e:
-        return JsonResponse({'error': f'Validation Error: {str(e)}'}, status=400)
+        return JsonResponse({'error': f'Error de validación: {str(e)}'}, status=400)
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON format in request body.'}, status=400)
+        return JsonResponse({'error': 'Formato JSON inválido en la solicitud.'}, status=400)
     except Exception as e:
         print(f"CRITICAL ERROR: {e}")
-        return JsonResponse({'error': f'An unexpected server error occurred: {str(e)}'}, status=500)
+        return JsonResponse({'error': f'Ocurrió un error inesperado en el servidor: {str(e)}'}, status=500)
 
 
 # ---------------------------------------------------------------------------
@@ -321,7 +321,7 @@ def goods_receipt_form(request, po_pk):
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_pk)
 
     if purchase_order.status.symbol in ['CLOSED', 'CANCELLED']:
-        messages.warning(request, f"The purchase order {purchase_order.id_purchase_order} is {purchase_order.status.name.lower()}. It's not possible to receive goods.")
+        messages.warning(request, f"La orden de compra {purchase_order.id_purchase_order} está en estado {purchase_order.status.name.lower()}. No se puede recibir mercancía.")
         return redirect('purchases:purchase_order_detail', pk=po_pk)
 
     order_lines = LinesPurchaseOrder.objects.filter(
@@ -331,7 +331,7 @@ def goods_receipt_form(request, po_pk):
     ).order_by('position')
 
     if not order_lines.exists():
-        messages.info(request, "All lines of this purchase order were already received.")
+        messages.info(request, "Todas las líneas de esta orden de compra ya fueron recibidas.")
         return redirect('purchases:purchase_order_detail', pk=po_pk)
 
     for line in order_lines:
@@ -363,9 +363,9 @@ def post_goods_receipt(request):
         lines_data = data.get('lines', [])
 
         if not lines_data:
-            return JsonResponse({'error': 'Must receive at least 1 quantity.'}, status=400)
+            return JsonResponse({'error': 'Debe recibir al menos 1 unidad.'}, status=400)
         if not receipt_date:
-            return JsonResponse({'error': 'Receipt date is required.'}, status=400)
+            return JsonResponse({'error': 'La fecha de recepción es obligatoria.'}, status=400)
 
         # El atomic va DENTRO del try: así un error deshace todo lo creado.
         # Antes el try/except estaba dentro del @transaction.atomic, el error
@@ -373,16 +373,16 @@ def post_goods_receipt(request):
         with transaction.atomic():
             purchase_order = PurchaseOrder.objects.select_for_update().filter(pk=po_pk).first()
             if purchase_order is None:
-                raise ValueError(f"Purchase order '{po_pk}' not found.")
+                raise ValueError(f"No existe la orden de compra '{po_pk}'.")
             if purchase_order.status.symbol in ['CLOSED', 'CANCELLED']:
-                raise ValueError(f"Purchase order {purchase_order.id_purchase_order} is {purchase_order.status.name.lower()}.")
+                raise ValueError(f"La orden de compra {purchase_order.id_purchase_order} está en estado {purchase_order.status.name.lower()}.")
 
-            gr_status_completed = get_by_symbol(GoodsReceiptStatus, 'COMPLETED', 'Goods receipt status')
-            movement_type_pur = get_by_symbol(MovementType, 'PUR', 'Movement type')
-            status_received = get_by_symbol(OrderStatus, 'RECEIVED', 'Order status')
-            status_partially_received = get_by_symbol(OrderStatus, 'PARTIAL_RECEIVED', 'Order status')
-            status_invoiced = get_by_symbol(OrderStatus, 'INVOICED', 'Order status')
-            status_closed = get_by_symbol(OrderStatus, 'CLOSED', 'Order status')
+            gr_status_completed = get_by_symbol(GoodsReceiptStatus, 'COMPLETED', 'Estado de recepción')
+            movement_type_pur = get_by_symbol(MovementType, 'PUR', 'Tipo de movimiento')
+            status_received = get_by_symbol(OrderStatus, 'RECEIVED', 'Estado de orden')
+            status_partially_received = get_by_symbol(OrderStatus, 'PARTIAL_RECEIVED', 'Estado de orden')
+            status_invoiced = get_by_symbol(OrderStatus, 'INVOICED', 'Estado de orden')
+            status_closed = get_by_symbol(OrderStatus, 'CLOSED', 'Estado de orden')
 
             next_gr_id = next_sequence(GoodsReceipt, 'id_goods_receipt', width=10)
 
@@ -400,21 +400,21 @@ def post_goods_receipt(request):
                 try:
                     received_qty = int(float(line_data['received_quantity']))
                 except (KeyError, TypeError, ValueError):
-                    raise ValueError(f"Invalid received quantity in line {i}.")
+                    raise ValueError(f"Cantidad recibida inválida en la línea {i}.")
 
                 if received_qty <= 0:
                     continue
 
                 po_line = LinesPurchaseOrder.objects.filter(pk=line_data.get('line_pk'), id_purchase_order=purchase_order).first()
                 if po_line is None:
-                    raise ValueError(f"Line {i} does not belong to purchase order {purchase_order.id_purchase_order}.")
+                    raise ValueError(f"La línea {i} no pertenece a la orden de compra {purchase_order.id_purchase_order}.")
                 location = LocationInventory.objects.filter(pk=line_data.get('location_pk')).first()
                 if location is None:
-                    raise ValueError(f"Storage location not found for line {po_line.position}.")
+                    raise ValueError(f"No se encontró la bodega de la línea {po_line.position}.")
 
                 available_to_receive = po_line.quantity - po_line.received_quantity
                 if received_qty > available_to_receive:
-                    raise ValueError(f"Over reception in line {po_line.position}. Order: {po_line.quantity}, Received before: {po_line.received_quantity}, trying to receive: {received_qty}")
+                    raise ValueError(f"Se está recibiendo de más en la línea {po_line.position}. Pedido: {po_line.quantity}, recibido antes: {po_line.received_quantity}, intenta recibir: {received_qty}")
 
                 inventory_movement = InventoryMovements.objects.create(
                     id_inventory_movement=f"GR{int(next_gr_id)}-{i}",
@@ -450,7 +450,7 @@ def post_goods_receipt(request):
                 total_received_in_this_gr += received_qty
 
             if total_received_in_this_gr == 0:
-                raise ValueError('Must receive at least 1 quantity.')
+                raise ValueError('Debe recibir al menos 1 unidad.')
 
             totals = purchase_order.linespurchaseorder_set.aggregate(
                 ordered=models.Sum('quantity'), received=models.Sum('received_quantity')
@@ -474,12 +474,12 @@ def post_goods_receipt(request):
         return JsonResponse(response_data, status=200)
 
     except ValueError as e:
-        return JsonResponse({'error': f'Validation Error: {str(e)}'}, status=400)
+        return JsonResponse({'error': f'Error de validación: {str(e)}'}, status=400)
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON format in request body.'}, status=400)
+        return JsonResponse({'error': 'Formato JSON inválido en la solicitud.'}, status=400)
     except Exception as e:
         print(f"CRITICAL ERROR: {e}")
-        return JsonResponse({'error': f'An unexpected server error occurred: {str(e)}'}, status=500)
+        return JsonResponse({'error': f'Ocurrió un error inesperado en el servidor: {str(e)}'}, status=500)
 
 
 # ---------------------------------------------------------------------------
@@ -499,7 +499,7 @@ def purchase_invoice_form(request, po_pk):
     purchase_order = get_object_or_404(PurchaseOrder, pk=po_pk)
 
     if purchase_order.status.symbol in ['CLOSED', 'INVOICED', 'CANCELLED']:
-        messages.warning(request, f"The purchase order {purchase_order.id_purchase_order} is already invoiced, closed or cancelled. It's not possible to create a new invoice")
+        messages.warning(request, f"La orden de compra {purchase_order.id_purchase_order} ya está facturada, cerrada o cancelada. No se puede crear otra factura.")
         return redirect('purchases:purchase_order_detail', pk=po_pk)
 
     order_lines_qs = LinesPurchaseOrder.objects.filter(id_purchase_order=purchase_order).order_by('position')
@@ -535,33 +535,33 @@ def post_purchase_invoice(request):
         lines_data = data.get('lines', [])
 
         if not lines_data or not due_date:
-            return JsonResponse({'error': 'Missing lines or due date.'}, status=400)
+            return JsonResponse({'error': 'Faltan las líneas o la fecha de vencimiento.'}, status=400)
 
         with transaction.atomic():
             purchase_order = PurchaseOrder.objects.select_for_update().filter(pk=po_pk).first()
             if purchase_order is None:
-                raise ValueError(f"Purchase order '{po_pk}' not found.")
+                raise ValueError(f"No existe la orden de compra '{po_pk}'.")
 
             # Es una API JSON: devolvemos error JSON, no un redirect
             if purchase_order.status.symbol in ['CLOSED', 'INVOICED', 'CANCELLED']:
-                raise ValueError(f"The purchase order {purchase_order.id_purchase_order} is already invoiced, closed or cancelled.")
+                raise ValueError(f"La orden de compra {purchase_order.id_purchase_order} ya está facturada, cerrada o cancelada.")
 
             invoice_currency = purchase_order.id_supplier.currency
             if invoice_currency is None:
                 first_line = purchase_order.linespurchaseorder_set.first()
                 invoice_currency = first_line.currency_supplier if first_line else None
             if invoice_currency is None:
-                raise ValueError("The supplier has no currency configured.")
+                raise ValueError("El proveedor no tiene moneda configurada.")
 
-            invoice_status_paid = get_by_symbol(InvoiceStatus, 'PAID', 'Invoice status')
-            status_received = get_by_symbol(OrderStatus, 'RECEIVED', 'Order status')
-            status_closed = get_by_symbol(OrderStatus, 'CLOSED', 'Order status')
-            status_invoiced = get_by_symbol(OrderStatus, 'INVOICED', 'Order status')
+            invoice_status_paid = get_by_symbol(InvoiceStatus, 'PAID', 'Estado de factura')
+            status_received = get_by_symbol(OrderStatus, 'RECEIVED', 'Estado de orden')
+            status_closed = get_by_symbol(OrderStatus, 'CLOSED', 'Estado de orden')
+            status_invoiced = get_by_symbol(OrderStatus, 'INVOICED', 'Estado de orden')
 
             purchases_account = AccountAccount.objects.filter(code=PURCHASES_ACCOUNT_CODE).first()
             bank_account = AccountAccount.objects.filter(code=BANK_ACCOUNT_CODE).first()
             if purchases_account is None or bank_account is None:
-                raise ValueError(f"Accounting: accounts {PURCHASES_ACCOUNT_CODE} and {BANK_ACCOUNT_CODE} are required. Run 'python manage.py seed_data'.")
+                raise ValueError(f"Contabilidad: se necesitan las cuentas {PURCHASES_ACCOUNT_CODE} y {BANK_ACCOUNT_CODE}. Ejecute 'python manage.py seed_data'.")
 
             next_invoice_id = next_sequence(PurchaseInvoice, 'id_invoice', width=10)
 
@@ -570,16 +570,16 @@ def post_purchase_invoice(request):
             for i, line_data in enumerate(lines_data, start=1):
                 po_line = LinesPurchaseOrder.objects.filter(pk=line_data.get('line_pk'), id_purchase_order=purchase_order).first()
                 if po_line is None:
-                    raise ValueError(f"Line {i} does not belong to purchase order {purchase_order.id_purchase_order}.")
+                    raise ValueError(f"La línea {i} no pertenece a la orden de compra {purchase_order.id_purchase_order}.")
                 try:
                     qty_to_invoice = int(float(line_data['quantity_to_invoice']))
                 except (KeyError, TypeError, ValueError):
-                    raise ValueError(f"Invalid quantity to invoice in line {po_line.position}.")
+                    raise ValueError(f"Cantidad a facturar inválida en la línea {po_line.position}.")
 
                 if qty_to_invoice <= 0:
                     continue
                 if qty_to_invoice > po_line.quantity:
-                    raise ValueError(f"Line {po_line.position}: cannot invoice more than the ordered quantity ({po_line.quantity}).")
+                    raise ValueError(f"Línea {po_line.position}: no se puede facturar más de lo pedido ({po_line.quantity}).")
 
                 line_total = qty_to_invoice * po_line.price
                 total_amount += line_total
@@ -595,7 +595,7 @@ def post_purchase_invoice(request):
                 ))
 
             if total_amount == 0:
-                raise ValueError('Total amount is zero. Check quantities.')
+                raise ValueError('El valor total es cero. Revise las cantidades.')
 
             purchase_invoice = PurchaseInvoice.objects.create(
                 id_invoice=next_invoice_id,
@@ -618,7 +618,7 @@ def post_purchase_invoice(request):
             Journal.objects.create(
                 id_journal=f"INV{short_id}D",
                 group_journal=str(short_id),
-                reference=f"INV-{group_id} - Inventory/Purchases (Paid)",
+                reference=f"FAC-{group_id} - Inventario/Compras (pagada)",
                 id_account=purchases_account,
                 credit=0.0,
                 debit=total_amount,
@@ -629,7 +629,7 @@ def post_purchase_invoice(request):
             Journal.objects.create(
                 id_journal=f"INV{short_id}C",
                 group_journal=str(short_id),
-                reference=f"INV-{group_id} - Payment from bank",
+                reference=f"FAC-{group_id} - Pago desde bancos",
                 id_account=bank_account,
                 credit=total_amount,
                 debit=0.0,
@@ -652,9 +652,9 @@ def post_purchase_invoice(request):
         return JsonResponse(response_data, status=200)
 
     except ValueError as e:
-        return JsonResponse({'error': f'Validation Error: {str(e)}'}, status=400)
+        return JsonResponse({'error': f'Error de validación: {str(e)}'}, status=400)
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON format in request body.'}, status=400)
+        return JsonResponse({'error': 'Formato JSON inválido en la solicitud.'}, status=400)
     except Exception as e:
         print(f"CRITICAL ERROR: {e}")
-        return JsonResponse({'error': f'An unexpected server error occurred: {str(e)}'}, status=500)
+        return JsonResponse({'error': f'Ocurrió un error inesperado en el servidor: {str(e)}'}, status=500)

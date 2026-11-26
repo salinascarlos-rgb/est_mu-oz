@@ -5,7 +5,7 @@ from .models import User
 class loginForm(AuthenticationForm):
 
     username = forms.CharField(
-        label = 'Username',
+        label = 'Usuario',
         widget = forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Enter your username'
@@ -13,7 +13,7 @@ class loginForm(AuthenticationForm):
     )
 
     password = forms.CharField(
-        label = 'Password',
+        label = 'Contraseña',
         widget = forms.PasswordInput(attrs={
             'class': 'form-control',
             'placeholder': 'Enter your password'

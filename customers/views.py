@@ -43,8 +43,8 @@ def customers_list(request):
         response.write('\ufeff'.encode('utf-8'))
         writer = csv.writer(response)
 
-        writer.writerow({'Id_customer', 'Legal Name', 'Name', 'Tax ID', 'Country', 'State/Province', 'City', 'Address', 'Zip Code', 'Phone', 'Email', 'Contact name', 'Contact role',
-                  'Category', 'Payment terms', 'Currency', 'Payment method', 'Bank account', 'Status', 'Created By', 'CReated At', 'Updated At'})
+        writer.writerow(['ID cliente', 'Razón social', 'Nombre', 'NIT', 'País', 'Departamento', 'Ciudad', 'Dirección', 'Código postal', 'Teléfono', 'Correo', 'Nombre de contacto', 'Cargo del contacto',
+                  'Categoría', 'Plazo de pago', 'Moneda', 'Medio de pago', 'Cuenta bancaria', 'Estado', 'Creado por', 'Creado el', 'Actualizado el'])
 
         for customer in customers_list:
             writer.writerow([
@@ -213,7 +213,7 @@ def customer_bulk_create(request):
             if customers_to_create:
                 Customer.objects.bulk_create(customers_to_create)
 
-            messages.success(request, f'Process finished. {len(successful_records)} customers created succesfully.')
+            messages.success(request, f'Proceso terminado. Se crearon {len(successful_records)} clientes.')
 
             context = {
                 'form': form,

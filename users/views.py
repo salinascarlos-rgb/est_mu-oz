@@ -20,7 +20,7 @@ def login_view(request):
                 login(request,user)
                 return redirect('dashboard')
             else:
-                messages.error(request, 'Invalid username or password')
+                messages.error(request, 'Usuario o contraseña incorrectos')
 
     else:
         form = loginForm()
@@ -30,5 +30,5 @@ def login_view(request):
 @login_required
 def logout_view(request):
     logout(request)
-    messages.success(request, 'You have successfully logged out.')
+    messages.success(request, 'Cerraste sesión correctamente.')
     return redirect('login')

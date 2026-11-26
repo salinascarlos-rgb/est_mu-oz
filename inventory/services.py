@@ -95,13 +95,13 @@ def _movement_type(symbol):
     try:
         return MovementType.objects.get(symbol=symbol)
     except MovementType.DoesNotExist:
-        raise ValueError(f"Movement type '{symbol}' not found. Run 'python manage.py seed_data'.")
+        raise ValueError(f"No existe el tipo de movimiento '{symbol}'. Ejecute 'python manage.py seed_data'.")
 
 
 def _default_currency():
     currency = Currency.objects.order_by('pk').first()
     if currency is None:
-        raise ValueError("No currency configured. Run 'python manage.py seed_data'.")
+        raise ValueError("No hay moneda configurada. Ejecute 'python manage.py seed_data'.")
     return currency
 
 
@@ -115,8 +115,8 @@ def _check_stock(material, location, quantity):
     available = get_stock(material, location)
     if quantity > available:
         raise InsufficientStock(
-            f"Not enough stock of {material.id_material} in {location.code}. "
-            f"Available: {available}, requested: {quantity}."
+            f"No hay suficiente existencia de {material.id_material} en {location.code}. "
+            f"Disponible: {available}, solicitado: {quantity}."
         )
 
 
@@ -127,8 +127,8 @@ MANUAL_MOVEMENT_TYPES = [LOSS, INTERNAL_USE, ADJUSTMENT_IN, ADJUSTMENT_OUT]
 
 # Asiento automático por tipo: (cuenta débito, texto). El crédito va a inventario.
 ACCOUNTING_MAP = {
-    INTERNAL_USE: ('6020', 'Internal Use'),
-    LOSS: ('6590', 'Inventory Loss'),
+    INTERNAL_USE: ('6020', 'Uso interno'),
+    LOSS: ('6590', 'Pérdida de inventario'),
 }
 INVENTORY_ACCOUNT_CODE = '1200'
 COST_CENTER_REQUIRED = {INTERNAL_USE}
@@ -152,14 +152,14 @@ def post_inventory_journal(movement, user):
     accounts = {a.code: a for a in AccountAccount.objects.filter(code__in=[debit_code, INVENTORY_ACCOUNT_CODE])}
     missing = {debit_code, INVENTORY_ACCOUNT_CODE} - set(accounts)
     if missing:
-        raise ValueError(f"Accounting: missing accounts {', '.join(sorted(missing))}. Run 'python manage.py seed_data'.")
+        raise ValueError(f"Contabilidad: faltan las cuentas {', '.join(sorted(missing))}. Ejecute 'python manage.py seed_data'.")
 
     number = int(movement.id_inventory_movement[len(MOVEMENT_ID_PREFIX):])
     group = f"IM{number}"
     detail = (movement.description or '')[:50]
     entries = [
         (debit_code, value, 0.0, f"{text}: {detail}" if detail else text, 'D'),
-        (INVENTORY_ACCOUNT_CODE, 0.0, value, f"Stock Out - {movement.id_inventory_movement}", 'C'),
+        (INVENTORY_ACCOUNT_CODE, 0.0, value, f"Salida de inventario - {movement.id_inventory_movement}", 'C'),
     ]
     return [
         Journal.objects.create(
@@ -186,11 +186,11 @@ def register_movement(*, material, location, movement_type, quantity, user, cost
     if isinstance(movement_type, str):
         movement_type = _movement_type(movement_type)
     if movement_type.symbol not in MANUAL_MOVEMENT_TYPES:
-        raise ValueError(f"Movement type {movement_type.symbol} cannot be registered manually.")
+        raise ValueError(f"El tipo de movimiento {movement_type.symbol} no se puede registrar manualmente.")
     if quantity <= 0:
-        raise ValueError("Quantity must be greater than zero.")
+        raise ValueError("La cantidad debe ser mayor que cero.")
     if movement_type.symbol in COST_CENTER_REQUIRED and cost_center is None:
-        raise ValueError("Cost Center is required for internal use.")
+        raise ValueError("El centro de costo es obligatorio para uso interno.")
 
     if movement_type.direction == MovementType.DIRECTION_OUT:
         _check_stock(material, location, quantity)
@@ -231,9 +231,9 @@ def register_adjustment(*, material, location, quantity, direction, reason, user
 def register_transfer(*, material, origin, destination, quantity, notes, user):
     """Traslado entre bodegas: una salida en el origen y una entrada en el destino."""
     if quantity <= 0:
-        raise ValueError("Quantity must be greater than zero.")
+        raise ValueError("La cantidad debe ser mayor que cero.")
     if origin == destination:
-        raise ValueError("Origin and destination must be different.")
+        raise ValueError("La bodega de origen y la de destino deben ser distintas.")
 
     _check_stock(material, origin, quantity)
 

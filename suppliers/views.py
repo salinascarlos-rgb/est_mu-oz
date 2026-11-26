@@ -44,8 +44,8 @@ def suppliers_list(request):
         response.write('\ufeff'.encode('utf-8'))
         writer = csv.writer(response)
 
-        writer.writerow({'Id_supplier', 'Legal Name', 'Name', 'Tax ID', 'Country', 'State/Province', 'City', 'Address', 'Zip Code', 'Phone', 'Email', 'Contact name', 'Contact role',
-                  'Category', 'Payment terms', 'Currency', 'Payment method', 'Bank account', 'Status', 'Created By', 'CReated At', 'Updated At'})
+        writer.writerow(['ID proveedor', 'Razón social', 'Nombre', 'NIT', 'País', 'Departamento', 'Ciudad', 'Dirección', 'Código postal', 'Teléfono', 'Correo', 'Nombre de contacto', 'Cargo del contacto',
+                  'Categoría', 'Plazo de pago', 'Moneda', 'Medio de pago', 'Cuenta bancaria', 'Estado', 'Creado por', 'Creado el', 'Actualizado el'])
 
         for supplier in suppliers_list:
             writer.writerow([
@@ -230,7 +230,7 @@ def supplier_bulk_create(request):
             if suppliers_to_create:
                 Supplier.objects.bulk_create(suppliers_to_create)
 
-            messages.success(request, f'Process finished. {len(successful_records)} suppliers created succesfully.')
+            messages.success(request, f'Proceso terminado. Se crearon {len(successful_records)} proveedores.')
 
             context = {
                 'form': form,

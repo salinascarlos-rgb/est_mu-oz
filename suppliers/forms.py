@@ -16,6 +16,6 @@ class SupplierForm(forms.ModelForm):
 
 class CsvUploadForm(forms.Form):
     csv_file=forms.FileField(
-        label='Supplier CSV File',
+        label='Archivo CSV de proveedores',
         help_text='The file must contain headers that match the model fields.'
     )

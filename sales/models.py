@@ -9,16 +9,16 @@ from inventory.models import LocationInventory
 
 class SalesOrderStatus(models.Model):
 
-    name = models.CharField(max_length=200, verbose_name="Name")
-    symbol = models.CharField(max_length=100, blank=True, verbose_name="Symbol")
+    name = models.CharField(max_length=200, verbose_name="Nombre")
+    symbol = models.CharField(max_length=100, blank=True, verbose_name="Símbolo")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
 
     class Meta:
-        verbose_name = "Sales Order Status"
-        verbose_name_plural = "Sales Order Statuses"
+        verbose_name = "Estado de orden de venta"
+        verbose_name_plural = "Estados de orden de venta"
 
     def __str__(self):
         return self.symbol
@@ -26,19 +26,19 @@ class SalesOrderStatus(models.Model):
 
 class SalesOrder(models.Model):
 
-    id_sales_order = models.CharField(max_length=10, unique=True, verbose_name="ID Sales Order")
-    id_customer = models.ForeignKey(Customer, on_delete=models.PROTECT, verbose_name="Customer")
+    id_sales_order = models.CharField(max_length=10, unique=True, verbose_name="ID orden de venta")
+    id_customer = models.ForeignKey(Customer, on_delete=models.PROTECT, verbose_name="Cliente")
     issue_date = models.DateField(auto_now_add=True)
-    estimated_delivery_date = models.DateField(verbose_name="Estimated delivery date")
-    status = models.ForeignKey(SalesOrderStatus, on_delete=models.PROTECT, verbose_name="Status")
+    estimated_delivery_date = models.DateField(verbose_name="Fecha estimada de entrega")
+    status = models.ForeignKey(SalesOrderStatus, on_delete=models.PROTECT, verbose_name="Estado")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
 
     class Meta:
-        verbose_name = "Sales Order"
-        verbose_name_plural = "Sales Orders"
+        verbose_name = "Orden de venta"
+        verbose_name_plural = "Órdenes de venta"
         ordering = ['-pk']
 
     def __str__(self):
@@ -51,30 +51,30 @@ class SalesOrder(models.Model):
 
 class LinesSalesOrder(models.Model):
 
-    id_sales_order_line = models.CharField(max_length=10, verbose_name="ID Sales Order Line")
-    id_sales_order = models.ForeignKey(SalesOrder, on_delete=models.CASCADE, verbose_name="Sales Order", related_name='lines')
+    id_sales_order_line = models.CharField(max_length=10, verbose_name="ID línea de orden de venta")
+    id_sales_order = models.ForeignKey(SalesOrder, on_delete=models.CASCADE, verbose_name="Orden de venta", related_name='lines')
     # related_name distinto al de compras ('id_material_1') para que Django no choque
     id_material = models.ForeignKey(Material, on_delete=models.PROTECT, verbose_name="Material", related_name='sales_lines')
-    id_location = models.ForeignKey(LocationInventory, on_delete=models.PROTECT, verbose_name="Location")
-    quantity = models.IntegerField(default=0, verbose_name="Quantity")
-    unit_material = models.ForeignKey(Unit, on_delete=models.PROTECT, verbose_name="Unit")
+    id_location = models.ForeignKey(LocationInventory, on_delete=models.PROTECT, verbose_name="Bodega")
+    quantity = models.IntegerField(default=0, verbose_name="Cantidad")
+    unit_material = models.ForeignKey(Unit, on_delete=models.PROTECT, verbose_name="Unidad")
 
-    price = models.FloatField(verbose_name="Price")
+    price = models.FloatField(verbose_name="Precio")
     # Costo promedio en la MISMA moneda del precio, para que el margen tenga sentido
-    wac = models.FloatField(verbose_name="WAC (Cost)", default=0.0)
-    margin = models.FloatField(verbose_name="Margin (%)", default=0.0)
+    wac = models.FloatField(verbose_name="Costo promedio", default=0.0)
+    margin = models.FloatField(verbose_name="Margen (%)", default=0.0)
 
-    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, verbose_name="Currency")
+    currency = models.ForeignKey(Currency, on_delete=models.PROTECT, verbose_name="Moneda")
 
-    shipped_quantity = models.IntegerField(default=0, verbose_name="Shipped Quantity")
+    shipped_quantity = models.IntegerField(default=0, verbose_name="Cantidad despachada")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
 
     class Meta:
-        verbose_name = "Line Sales Order"
-        verbose_name_plural = "Lines Sales Orders"
+        verbose_name = "Línea de orden de venta"
+        verbose_name_plural = "Líneas de órdenes de venta"
 
     def save(self, *args, **kwargs):
         if self.price and self.price > 0:

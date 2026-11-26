@@ -19,3 +19,8 @@ class ExchangeRateAdmin(admin.ModelAdmin):
     list_display = ('currency', 'date', 'rate')
     list_filter = ('currency',)
     date_hierarchy = 'date'
+
+# Títulos del admin
+admin.site.site_header = 'EST MUÑOZ - Administración'
+admin.site.site_title = 'EST MUÑOZ'
+admin.site.index_title = 'Panel de administración'
