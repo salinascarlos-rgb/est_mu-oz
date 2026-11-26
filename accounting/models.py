@@ -88,6 +88,9 @@ class Journal(models.Model):
     debit = models.FloatField(verbose_name='Debit', default=0.0)
     currency = models.ForeignKey(Currency, verbose_name= 'Currency', on_delete=models.PROTECT)
 
+    cost_center = models.ForeignKey('CostCenter', verbose_name='Cost Center', on_delete=models.PROTECT, null=True, blank=True)
+    description = models.TextField(verbose_name='Description', blank=True)
+
     status = models.ForeignKey(Status,default=1,on_delete=models.PROTECT,verbose_name="Status")
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -100,3 +103,23 @@ class Journal(models.Model):
 
     def __str__(self):
         return self.id_journal
+
+
+class CostCenter(models.Model):
+    id_cost_center = models.CharField(verbose_name="Cost Center ID", max_length=10, primary_key=True)
+    name = models.CharField(verbose_name="Name", max_length=100)
+    description = models.TextField(verbose_name="Description", blank=True)
+
+    status = models.ForeignKey(Status, default=1, on_delete=models.PROTECT, verbose_name="Status")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        verbose_name = "Cost Center"
+        verbose_name_plural = "Cost Centers"
+
+    def __str__(self):
+        return f"{self.id_cost_center} - {self.name}"
+

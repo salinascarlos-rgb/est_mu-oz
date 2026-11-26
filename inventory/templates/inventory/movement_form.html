@@ -1,0 +1,60 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% include "inventory/_header.html" %}
+
+<div class="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md">
+    <h3 class="text-2xl font-bold text-gray-800 mb-6 border-b-2 border-gray-300 pb-2">{{ title }}</h3>
+
+    <form method="post" class="space-y-4" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded" role="alert">
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}
+
+        {% for field in form %}
+        <div id="row_{{ field.name }}" class="flex flex-col md:flex-row md:items-center md:space-x-4">
+            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 md:w-1/3 mb-1 md:mb-0">{{ field.label }}</label>
+            <div class="md:w-2/3">
+                {{ field }}
+                {% if field.errors %}
+                <div class="bg-red-100 text-red-700 p-2 mt-1 rounded text-sm">{{ field.errors|join:" " }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="flex justify-end space-x-4 pt-4">
+            <a href="{% url 'inventory:stock_list' %}" class="bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-gray-400">Cancel</a>
+            <button type="submit" class="bg-[#233b6e] text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300 hover:bg-[#1a2c53]">{{ submit_label }}</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+{% if cost_center_required %}
+<script>
+    // El centro de costo solo se muestra (y es obligatorio) para uso interno
+    (function () {
+        const typeSelect = document.getElementById('id_movement_type');
+        const costRow = document.getElementById('row_cost_center');
+        if (!typeSelect || !costRow) return;
+        const required = {{ cost_center_required|safe }};
+        const symbolOf = (option) => (option ? option.text.split(' - ')[0].trim() : '');
+        const toggle = () => {
+            const needs = required.includes(symbolOf(typeSelect.options[typeSelect.selectedIndex]));
+            costRow.style.display = needs ? '' : 'none';
+            document.getElementById('id_cost_center').required = needs;
+        };
+        typeSelect.addEventListener('change', toggle);
+        toggle();
+    })();
+</script>
+{% endif %}
+{% endblock extra_js %}

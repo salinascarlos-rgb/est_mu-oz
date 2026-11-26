@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
     "core",
     "users",
     "materials",
@@ -95,6 +97,8 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        # Espera hasta 20 s si otro hilo está escribiendo (tareas de fondo)
+        "OPTIONS": {"timeout": 20},
     }
 }
 
@@ -134,3 +138,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+
+
+# --- Tasas de cambio e inventario ---
+# Moneda base para valorizar el inventario (como en el curso)
+BASE_CURRENCY = os.environ.get("BASE_CURRENCY", "USD")
+# Ejecutar en segundo plano la descarga de tasas y la foto diaria de stock al abrir el dashboard
+BACKGROUND_TASKS_ENABLED = os.environ.get("BACKGROUND_TASKS_ENABLED", "True") == "True" and "test" not in sys.argv
+# Minutos mínimos entre dos ejecuciones de las tareas de fondo
+BACKGROUND_TASKS_INTERVAL_MINUTES = 30

@@ -13,7 +13,7 @@ from core.models import Status, Currency, Country
 from materials.models import Unit, MaterialType
 from inventory.models import MovementType
 from purchases.models import OrderStatus, GoodsReceiptStatus, InvoiceStatus
-from accounting.models import AccountNature, AccountType, AccountGroup, AccountAccount
+from accounting.models import AccountNature, AccountType, AccountGroup, AccountAccount, CostCenter
 from users.models import Role
 
 
@@ -40,13 +40,18 @@ INVOICE_STATUSES = [
     ('Cancelled', 'CANCELLED'),
 ]
 
+# (name, symbol, direction): +1 suma al inventario, -1 resta
 MOVEMENT_TYPES = [
-    ('Purchase', 'PUR'),
-    ('Purchase Return', 'PUR_RET'),
-    ('Sale', 'SAL'),
-    ('Sales Return', 'SAL_RET'),
-    ('Adjustment In', 'ADJ_IN'),
-    ('Adjustment Out', 'ADJ_OUT'),
+    ('Purchase', 'PUR', 1),
+    ('Purchase Return', 'PUR_RET', -1),
+    ('Sale', 'SAL', -1),
+    ('Sales Return', 'SAL_RET', 1),
+    ('Adjustment In', 'ADJ_IN', 1),
+    ('Adjustment Out', 'ADJ_OUT', -1),
+    ('Transfer In', 'TRF_IN', 1),
+    ('Transfer Out', 'TRF_OUT', -1),
+    ('Damage / Loss', 'LOSS', -1),
+    ('Internal Use', 'INT_USE', -1),
 ]
 
 ACCOUNT_TYPES = [
@@ -73,6 +78,15 @@ ACCOUNTS = [
     ('2200', '2200', 'Accounts Payable', '2', '3', '2'),
     ('4100', '4100', 'Sales Revenue', '4', '5', '2'),
     ('6100', '6100', 'Cost of Goods Sold', '5', '6', '1'),
+    ('6020', '6020', 'Internal Use', '5', '6', '1'),
+    ('6590', '6590', 'Inventory Loss', '5', '6', '1'),
+]
+
+# Centros de costo de ejemplo (se pueden editar en el admin)
+COST_CENTERS = [
+    ('ADM', 'Administración', 'Gastos administrativos y de oficina'),
+    ('VEN', 'Ventas', 'Punto de venta y atención a clientes'),
+    ('BOD', 'Bodega', 'Almacenamiento y despacho'),
 ]
 
 
@@ -95,6 +109,8 @@ class Command(BaseCommand):
 
         cop, c = Currency.objects.get_or_create(symbol='COP', defaults={'name': 'Peso Colombiano'})
         total += c
+        # Moneda base para valorizar el inventario (settings.BASE_CURRENCY)
+        total += Currency.objects.get_or_create(symbol='USD', defaults={'name': 'Dólar estadounidense'})[1]
         colombia, c = Country.objects.get_or_create(name='Colombia')
         total += c
 
@@ -104,7 +120,14 @@ class Command(BaseCommand):
         total += self._by_symbol(OrderStatus, ORDER_STATUSES)
         total += self._by_symbol(GoodsReceiptStatus, GOODS_RECEIPT_STATUSES)
         total += self._by_symbol(InvoiceStatus, INVOICE_STATUSES)
-        total += self._by_symbol(MovementType, MOVEMENT_TYPES)
+        for name, symbol, direction in MOVEMENT_TYPES:
+            movement_type, was_created = MovementType.objects.get_or_create(
+                symbol=symbol, defaults={'name': name, 'direction': direction}
+            )
+            if not was_created and movement_type.direction != direction:
+                movement_type.direction = direction
+                movement_type.save(update_fields=['direction'])
+            total += was_created
 
         for pk, name, symbol, effect in [
             ('1', 'Debit', 'DR', 'Increases assets and expenses'),
@@ -140,6 +163,11 @@ class Command(BaseCommand):
                 status=active,
             )
             total += 1
+
+        for pk, name, description in COST_CENTERS:
+            total += CostCenter.objects.get_or_create(
+                id_cost_center=pk, defaults={'name': name, 'description': description, 'status': active}
+            )[1]
 
         total += Role.objects.get_or_create(
             role_name='Administrator',

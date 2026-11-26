@@ -16,6 +16,7 @@ from materials.models import Material, Unit
 from core.models import Currency
 from users.models import UserRole
 from inventory.models import LocationInventory, MovementType, InventoryMovements
+from inventory.services import rate_for
 from accounting.models import AccountAccount, Journal
 
 
@@ -424,6 +425,9 @@ def post_goods_receipt(request):
                     movement_type=movement_type_pur,
                     price=po_line.price,
                     currency=po_line.currency_supplier,
+                    # Tasa de la fecha de la orden, como en el video 16
+                    exchange_rate=rate_for(po_line.currency_supplier, purchase_order.issue_date),
+                    reference=f"GR {next_gr_id} / PO {purchase_order.id_purchase_order}",
                     created_by=request.user,
                 )
 
